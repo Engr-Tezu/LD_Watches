@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#1e1e1e"/>
+  <circle cx="200" cy="200" r="120" stroke="#c9a962" stroke-width="2" fill="none" opacity="0.3"/>
+  <circle cx="200" cy="200" r="100" stroke="#c9a962" stroke-width="1" fill="none" opacity="0.2"/>
+  <line x1="200" y1="200" x2="200" y2="130" stroke="#c9a962" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <line x1="200" y1="200" x2="250" y2="200" stroke="#c9a962" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+  <circle cx="200" cy="200" r="6" fill="#c9a962" opacity="0.6"/>
+  <text x="200" y="340" text-anchor="middle" fill="#8a8a8a" font-family="system-ui" font-size="14">LD Watches</text>
+</svg>

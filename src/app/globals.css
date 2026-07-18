@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ld-black: #080808;
+  --color-ld-dark: #111111;
+  --color-ld-charcoal: #1a1a1a;
+  --color-ld-grey: #2e2e2e;
+  --color-ld-silver: #a3a3a3;
+  --color-ld-light: #d4d4d4;
+  --color-ld-gold: #d4a82e;
+  --color-ld-gold-light: #ecc84a;
+  --color-ld-gold-dark: #b8891f;
+  --color-ld-gold-muted: #8a6a18;
+  --color-ld-whatsapp: #1fa855;
+
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-ld-black);
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-ld-black);
+    color: #f0f0f0;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-ld-gold) 35%, transparent);
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-ld-dark);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ld-grey);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ld-gold-dark);
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #f0c84a, var(--color-ld-gold), var(--color-ld-gold-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: rgba(8, 8, 8, 0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(212, 168, 46, 0.14);
+  }
+
+  .glass-nav {
+    background: rgba(8, 8, 8, 0.62);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(212, 168, 46, 0.12);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  .glass-panel {
+    background: rgba(26, 26, 26, 0.42);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(212, 168, 46, 0.14);
+  }
+
+  .glass-card {
+    background: rgba(26, 26, 26, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 168, 46, 0.12);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 32px rgba(212, 168, 46, 0.18);
+  }
+
+  .gold-glow-hover:hover {
+    box-shadow: 0 0 42px rgba(212, 168, 46, 0.28);
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-ld-gold text-[#1a1200] font-semibold rounded-lg hover:bg-ld-gold-light transition-all duration-300;
+  }
+
+  .btn-outline-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-ld-gold/40 text-ld-gold-light font-semibold rounded-lg hover:border-ld-gold hover:bg-ld-gold/10 transition-all duration-300;
+  }
+
+  .section-heading {
+    @apply font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl font-bold text-white;
+  }
+
+  .card-surface {
+    background: rgba(26, 26, 26, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 168, 46, 0.12);
+    border-radius: 1rem;
+    transition: all 0.3s;
+  }
+
+  .card-surface:hover {
+    border-color: rgba(212, 168, 46, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(212, 168, 46, 0.12), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
