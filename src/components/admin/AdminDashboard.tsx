@@ -1,36 +1,36 @@
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/brand";
-import { getWatches, getWatchCount } from "@/lib/data";
-import { Watch } from "@/types/watch";
-import { Watch as WatchIcon, Star, Package } from "lucide-react";
+import { getProducts, getProductCount } from "@/lib/data";
+import { getCategories } from "@/lib/site";
+import { Product } from "@/types/product";
+import { Package, Star, FolderTree } from "lucide-react";
 
 export default async function AdminDashboard() {
-  let watchCount = 0;
+  let itemCount = 0;
   let featuredCount = 0;
-  let inStockCount = 0;
-  let recentWatches: Watch[] = [];
+  let categoryCount = 0;
+  let recentItems: Product[] = [];
 
   try {
-    watchCount = await getWatchCount();
-    const watches = await getWatches();
-    featuredCount = watches.filter((w) => w.featured).length;
-    inStockCount = watches.filter((w) => w.inStock).length;
-    recentWatches = watches.slice(0, 5);
+    itemCount = await getProductCount();
+    const items = await getProducts();
+    const categories = await getCategories();
+    categoryCount = categories.length;
+    featuredCount = items.filter((w) => w.featured).length;
+    recentItems = items.slice(0, 5);
   } catch {
     // MongoDB not connected
   }
 
   const stats = [
-    { label: "Total Watches", value: watchCount, icon: WatchIcon, color: "text-ld-gold" },
+    { label: "Total Products", value: itemCount, icon: Package, color: "text-ld-gold" },
     { label: "Featured", value: featuredCount, icon: Star, color: "text-yellow-400" },
-    { label: "In Stock", value: inStockCount, icon: Package, color: "text-green-400" },
+    { label: "Categories", value: categoryCount, icon: FolderTree, color: "text-blue-400" },
   ];
 
   return (
     <div>
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-ld-silver text-sm mt-1">Welcome to {SITE_NAME} admin panel</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -49,24 +49,24 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="bg-ld-charcoal rounded-xl border border-ld-grey/50 p-6">
-        <h2 className="text-white font-semibold mb-4">Recent Watches</h2>
-        {recentWatches.length === 0 ? (
-          <p className="text-ld-silver text-sm">No watches added yet.</p>
+        <h2 className="text-white font-semibold mb-4">Recent Products</h2>
+        {recentItems.length === 0 ? (
+          <p className="text-ld-silver text-sm">No products yet.</p>
         ) : (
           <div className="space-y-3">
-            {recentWatches.map((watch) => (
+            {recentItems.map((item) => (
               <div
-                key={watch._id}
+                key={item._id}
                 className="flex items-center justify-between p-3 bg-ld-dark rounded-lg"
               >
                 <div>
-                  <p className="text-white text-sm font-medium">{watch.name}</p>
+                  <p className="text-white text-sm font-medium">{item.name}</p>
                   <p className="text-ld-silver text-xs">
-                    {watch.brand} · {watch.category}
+                    {item.brand} · {item.category}
                   </p>
                 </div>
                 <Link
-                  href={`/admin/watches/${watch._id}/edit`}
+                  href={`/admin/products/${item._id}/edit`}
                   className="text-ld-gold text-xs hover:text-ld-gold-light transition-colors"
                 >
                   Edit

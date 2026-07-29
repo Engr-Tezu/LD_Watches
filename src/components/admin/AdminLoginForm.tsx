@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Mail, AlertCircle } from "lucide-react";
 import { SITE_NAME_SHORT } from "@/lib/brand";
-import WatchLogo from "@/components/ui/WatchLogo";
+import SiteLogo from "@/components/ui/SiteLogo";
 import TypewriterRotate from "@/components/ui/TypewriterRotate";
 
 export default function AdminLoginForm() {
@@ -66,7 +66,7 @@ export default function AdminLoginForm() {
           className="relative text-center"
         >
           <div className="flex justify-center mb-8 px-4">
-            <WatchLogo size="hero" />
+            <SiteLogo size="hero" />
           </div>
 
           <h1 className="sr-only">{SITE_NAME_SHORT} WATCHES Admin</h1>
@@ -101,7 +101,7 @@ export default function AdminLoginForm() {
         >
           <div className="text-center mb-8 lg:text-left">
             <div className="flex items-center justify-center lg:justify-start gap-3 mb-4 lg:hidden">
-              <WatchLogo size="admin" />
+              <SiteLogo size="admin" />
               <span className="font-[family-name:var(--font-display)] text-xl font-bold text-white sr-only">
                 {SITE_NAME_SHORT} <span className="text-gradient-gold">Admin</span>
               </span>

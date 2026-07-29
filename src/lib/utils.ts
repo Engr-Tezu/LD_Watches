@@ -1,4 +1,4 @@
-import { Watch } from "@/types/watch";
+import { Product } from "@/types/product";
 
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat("en-PK", {
@@ -9,48 +9,46 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
-export function getMainImage(watch: Watch): string {
-  const images = watch.images?.length ? watch.images : ["/placeholder-watch.svg"];
-  const index = watch.mainImageIndex ?? 0;
+export function getMainImage(product: Product): string {
+  const images = product.images?.length ? product.images : ["/placeholder-watch.svg"];
+  const index = product.mainImageIndex ?? 0;
   return images[Math.min(index, images.length - 1)] ?? images[0];
 }
 
-export function getOrderedImages(watch: Watch): string[] {
-  const images = watch.images?.length ? watch.images : ["/placeholder-watch.svg"];
-  const index = Math.min(watch.mainImageIndex ?? 0, images.length - 1);
+export function getOrderedImages(product: Product): string[] {
+  const images = product.images?.length ? product.images : ["/placeholder-watch.svg"];
+  const index = Math.min(product.mainImageIndex ?? 0, images.length - 1);
   if (index <= 0) return images;
   return [images[index], ...images.filter((_, i) => i !== index)];
 }
 
-export function isWaterResistant(watch: Watch): boolean {
-  if (typeof watch.waterResistant === "boolean") return watch.waterResistant;
-  return Boolean(watch.specifications?.waterResistance);
+export function isWaterResistant(product: Product): boolean {
+  if (typeof product.waterResistant === "boolean") return product.waterResistant;
+  return Boolean(product.specifications?.waterResistance);
 }
 
-export function generateWhatsAppLink(watch: Watch): string {
-  const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
+export function generateWhatsAppLink(product: Product, options?: { whatsappNumber?: string; siteName?: string; siteUrl?: string }): string {
+  const phoneNumber = options?.whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
   const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
-
+  const siteName = options?.siteName || "Our Store";
+  const siteUrl = options?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const message = [
-    "Hello LUXE DIAL WATCHES! 👋",
+    `Hello ${siteName}!`,
     "",
-    "I'm interested in this watch:",
+    "I'm interested in this item:",
     "",
-    `⌚ *${watch.name}*`,
-    `🏷️ Brand: ${watch.brand}`,
-    `📂 Category: ${watch.category}`,
-    `💰 Price: ${formatPrice(watch.price)}`,
-    isWaterResistant(watch) ? "💧 Water Resistant: Yes" : "",
+    `*${product.name}*`,
+    `Brand: ${product.brand}`,
+    `Category: ${product.category}`,
+    `Price: ${formatPrice(product.price)}`,
+    isWaterResistant(product) ? "Water Resistant: Yes" : "",
     "",
-    watch.description.slice(0, 150),
+    product.description.slice(0, 150),
     "",
-    `🔗 View: ${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/watches/${watch.slug}`,
+    `View: ${siteUrl}/products/${product.slug}`,
     "",
     "Please share availability and delivery details. Thank you!",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
+  ].filter(Boolean).join("\n");
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
 }
 
