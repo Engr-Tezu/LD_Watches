@@ -38,11 +38,13 @@ export default function AdminFaqsManager({ initialSettings }: { initialSettings:
     setSaving(true);
     setError("");
     try {
-      const payload = {
-        ...settings,
-        ...(typeof nextFaqImageUrl === "string" ? { faqImageUrl: nextFaqImageUrl } : {}),
+      // Only send FAQ fields — never rewrite the full settings document.
+      const payload: { faqs: FaqItem[]; faqImageUrl?: string } = {
         faqs: nextFaqs,
       };
+      if (typeof nextFaqImageUrl === "string") {
+        payload.faqImageUrl = nextFaqImageUrl;
+      }
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

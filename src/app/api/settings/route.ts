@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/auth";
 import { getSiteSettings, upsertSiteSettings } from "@/lib/site";
+import { SiteSettings } from "@/types/site";
 
 export async function GET() {
   try {
@@ -12,6 +14,10 @@ export async function GET() {
   }
 }
 
+function pickDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const session = await getAdminSession();
@@ -20,54 +26,78 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const payload = {
-      siteName: body.siteName,
-      siteNameShort: body.siteNameShort,
-      logoUrl: body.logoUrl,
-      contactPhone: body.contactPhone,
-      contactEmail: body.contactEmail,
-      contactAddress: body.contactAddress,
-      whatsappNumber: body.whatsappNumber,
-      siteUrl: body.siteUrl,
-      seoTitle: body.seoTitle,
-      seoDescription: body.seoDescription,
-      seoKeywords: Array.isArray(body.seoKeywords)
+    const payload: Partial<SiteSettings> = {};
+
+    const stringFields: Array<keyof SiteSettings> = [
+      "siteName",
+      "siteNameShort",
+      "logoUrl",
+      "contactPhone",
+      "contactEmail",
+      "contactAddress",
+      "whatsappNumber",
+      "siteUrl",
+      "seoTitle",
+      "seoDescription",
+      "seoOgImage",
+      "heroBadge",
+      "heroTitlePrefix",
+      "heroDescription",
+      "collectionTitle",
+      "collectionSubtitle",
+      "aboutTitle",
+      "aboutTagline",
+      "faqPageTitle",
+      "faqPageSubtitle",
+      "faqImageUrl",
+      "shippingPolicyTitle",
+      "shippingPolicyContent",
+      "returnPolicyTitle",
+      "returnPolicyContent",
+      "reviewsSectionTitle",
+      "reviewsSectionSubtitle",
+      "contactSectionTitle",
+      "contactSectionDescription",
+      "contactButtonLabel",
+    ];
+
+    for (const key of stringFields) {
+      if (pickDefined(body[key])) {
+        (payload as Record<string, unknown>)[key] = body[key];
+      }
+    }
+
+    if (pickDefined(body.seoKeywords)) {
+      payload.seoKeywords = Array.isArray(body.seoKeywords)
         ? body.seoKeywords
         : String(body.seoKeywords || "")
             .split(",")
             .map((word: string) => word.trim())
-            .filter(Boolean),
-      seoOgImage: body.seoOgImage,
-      heroBadge: body.heroBadge,
-      heroTitlePrefix: body.heroTitlePrefix,
-      heroRotatingWords: Array.isArray(body.heroRotatingWords)
+            .filter(Boolean);
+    }
+
+    if (pickDefined(body.heroRotatingWords)) {
+      payload.heroRotatingWords = Array.isArray(body.heroRotatingWords)
         ? body.heroRotatingWords
         : String(body.heroRotatingWords || "")
             .split(",")
             .map((word: string) => word.trim())
-            .filter(Boolean),
-      heroDescription: body.heroDescription,
-      collectionTitle: body.collectionTitle,
-      collectionSubtitle: body.collectionSubtitle,
-      aboutTitle: body.aboutTitle,
-      aboutBlocks: body.aboutBlocks,
-      aboutTagline: body.aboutTagline,
-      faqs: body.faqs,
-      faqPageTitle: body.faqPageTitle,
-      faqPageSubtitle: body.faqPageSubtitle,
-      faqImageUrl: body.faqImageUrl || "",
-      shippingPolicyTitle: body.shippingPolicyTitle,
-      shippingPolicyContent: body.shippingPolicyContent,
-      returnPolicyTitle: body.returnPolicyTitle,
-      returnPolicyContent: body.returnPolicyContent,
-      reviewsSectionTitle: body.reviewsSectionTitle,
-      reviewsSectionSubtitle: body.reviewsSectionSubtitle,
-      contactSectionTitle: body.contactSectionTitle,
-      contactSectionDescription: body.contactSectionDescription,
-      contactButtonLabel: body.contactButtonLabel,
-    };
+            .filter(Boolean);
+    }
+
+    if (pickDefined(body.aboutBlocks)) {
+      payload.aboutBlocks = body.aboutBlocks;
+    }
+
+    if (pickDefined(body.faqs)) {
+      payload.faqs = body.faqs;
+    }
 
     const settings = await upsertSiteSettings(payload);
+    revalidatePath("/", "layout");
+    revalidatePath("/faq");
+    revalidatePath("/shipping-returns");
+    revalidatePath("/products");
     return NextResponse.json({ success: true, data: settings });
   } catch (error) {
     console.error("PUT /api/settings error:", error);

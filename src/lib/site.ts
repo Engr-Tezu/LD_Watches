@@ -1,4 +1,5 @@
 import slugify from "slugify";
+import { unstable_noStore as noStore } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import CategoryModel from "@/models/Category";
 import ReviewModel from "@/models/Review";
@@ -275,8 +276,11 @@ export function normalizeSiteSettings(input?: Partial<SiteSettings> | null): Sit
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
+  // Never cache settings — production was serving stale/default names.
+  noStore();
   await connectDB();
-  const settings = await SiteSettingsModel.findOne().lean();
+  // Prefer the most recently updated document if duplicates exist.
+  const settings = await SiteSettingsModel.findOne().sort({ updatedAt: -1 }).lean();
   if (!settings) {
     return DEFAULT_SITE_SETTINGS;
   }
@@ -288,15 +292,40 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
 export async function upsertSiteSettings(input: Partial<SiteSettings>) {
   await connectDB();
-  const payload = normalizeSiteSettings(input);
+
+  // Merge with the existing document so partial updates (e.g. FAQs only)
+  // never overwrite other fields with hardcoded defaults.
+  const existing = await SiteSettingsModel.findOne().lean();
+  const definedInput = Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== undefined)
+  ) as Partial<SiteSettings>;
+
+  const payload = normalizeSiteSettings({
+    ...(existing
+      ? ({
+          ...existing,
+          _id: String(existing._id),
+        } as Partial<SiteSettings>)
+      : {}),
+    ...definedInput,
+  });
+
   const updatePayload = { ...payload };
   delete updatePayload._id;
+
   const doc = await SiteSettingsModel.findOneAndUpdate({}, updatePayload, {
     upsert: true,
     new: true,
     setDefaultsOnInsert: true,
     runValidators: true,
+    sort: { updatedAt: -1 },
   }).lean();
+
+  // Keep a single settings document — remove any duplicates.
+  if (doc?._id) {
+    await SiteSettingsModel.deleteMany({ _id: { $ne: doc._id } });
+  }
+
   return normalizeSiteSettings({
     ...doc,
     _id: String(doc!._id),
