@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { Plus, ArrowRight } from "lucide-react";
 import FadeIn from "@/components/ui/FadeIn";
 import { FaqItem } from "@/types/site";
 
@@ -30,81 +31,86 @@ export default function HomeFaqSection({
   const preview = faqs.slice(0, 5);
 
   return (
-    <section id="faq" className="py-10 sm:py-12 bg-ld-black border-t border-ld-grey/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeIn>
-          <div className="text-left md:text-left mb-4 sm:mb-6 max-w-2xl">
-            <h2 className="section-heading mb-2">
-              {firstWords} <span className="text-gradient-gold">{lastWord}</span>
-            </h2>
-            {subtitle && (
-              <p className="text-ld-silver text-sm sm:text-base">{subtitle}</p>
-            )}
-            <div className="w-14 h-px bg-gradient-to-r from-ld-gold/60 to-transparent mt-4" />
-          </div>
-        </FadeIn>
+    <section id="faq" className="border-t border-am-line bg-am-bg-alt py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+          <div>
+            <FadeIn>
+              <div className="mb-6 max-w-2xl">
+                <h2 className="section-heading">
+                  {firstWords} <span className="text-gradient-gold">{lastWord}</span>
+                </h2>
+                {subtitle && (
+                  <p className="mt-3 text-sm text-am-ink-soft sm:text-base">{subtitle}</p>
+                )}
+                <div className="rule-gold mt-4 h-px w-16" aria-hidden />
+              </div>
+            </FadeIn>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          <div className="space-y-3 order-1 mt-[-0.35rem]">
-            {preview.map((faq, index) => {
-              const isOpen = openIndex === index;
-              return (
-                <FadeIn key={`${faq.question}-${index}`} delay={Math.min(index * 0.05, 0.25)}>
-                  <div className="glass-panel rounded-2xl overflow-hidden border border-ld-grey/30">
-                    <button
-                      type="button"
-                      onClick={() => setOpenIndex(isOpen ? null : index)}
-                      className="w-full px-4 sm:px-5 py-4 flex items-start justify-between gap-4 text-left"
-                      aria-expanded={isOpen}
+            <div className="space-y-3">
+              {preview.map((faq, index) => {
+                const isOpen = openIndex === index;
+                return (
+                  <FadeIn key={`${faq.question}-${index}`} delay={Math.min(index * 0.05, 0.25)}>
+                    <div
+                      className={`overflow-hidden rounded-2xl border bg-am-card transition-colors ${
+                        isOpen ? "border-am-gold/40" : "border-am-line"
+                      }`}
                     >
-                      <span className="text-white font-medium text-sm sm:text-base">
-                        {faq.question}
-                      </span>
-                      <motion.span
-                        animate={{ rotate: isOpen ? 45 : 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-ld-gold shrink-0 text-xl leading-none"
+                      <button
+                        type="button"
+                        onClick={() => setOpenIndex(isOpen ? null : index)}
+                        className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left sm:px-5"
+                        aria-expanded={isOpen}
                       >
-                        +
-                      </motion.span>
-                    </button>
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.div
-                          key="content"
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: "easeInOut" }}
-                          className="overflow-hidden"
+                        <span className="text-sm font-medium text-am-ink sm:text-base">
+                          {faq.question}
+                        </span>
+                        <motion.span
+                          animate={{ rotate: isOpen ? 45 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="shrink-0 text-am-gold"
                         >
-                          <p className="px-4 sm:px-5 pb-4 text-ld-silver text-sm leading-relaxed border-t border-ld-grey/30 pt-3">
-                            {faq.answer}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </FadeIn>
-              );
-            })}
+                          <Plus className="h-5 w-5" />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            key="content"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.28, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <p className="border-t border-am-line px-4 pb-4 pt-3 text-sm leading-relaxed text-am-ink-soft sm:px-5">
+                              {faq.answer}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </FadeIn>
+                );
+              })}
 
-            {faqs.length > 5 && (
-              <FadeIn delay={0.2}>
-                <div className="pt-2">
+              {faqs.length > preview.length && (
+                <FadeIn delay={0.2}>
                   <Link
                     href="/faq"
-                    className="text-ld-gold-light text-sm font-medium hover:text-ld-gold transition-colors"
+                    className="group mt-2 inline-flex items-center gap-2 text-sm font-semibold text-am-gold transition-colors hover:text-am-gold-deep"
                   >
-                    View all FAQs →
+                    View all {faqs.length} FAQs
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                   </Link>
-                </div>
-              </FadeIn>
-            )}
+                </FadeIn>
+              )}
+            </div>
           </div>
 
-          <FadeIn delay={0.15} className="hidden lg:block order-2">
-            <div className="relative aspect-[4/5] max-h-[420px] w-full rounded-2xl overflow-hidden border border-ld-gold/15 bg-ld-dark mt-[-0.5rem]">
+          <FadeIn delay={0.15} className="hidden lg:block">
+            <div className="relative aspect-[4/5] max-h-[480px] w-full overflow-hidden rounded-2xl border border-am-line bg-am-bg-alt">
               <Image
                 src={faqImageUrl || "/home-watch.jfif"}
                 alt="Premium product"
@@ -112,9 +118,7 @@ export default function HomeFaqSection({
                 className="object-cover object-center"
                 sizes="(max-width: 1024px) 0px, 40vw"
                 unoptimized
-                priority={false}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ld-black/50 via-transparent to-transparent" />
             </div>
           </FadeIn>
         </div>

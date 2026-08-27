@@ -12,10 +12,10 @@ export default function ProductTag({
   className = "",
 }: ProductTagProps) {
   const styles = {
-    gold: "bg-[#c9a227] text-[#1a1200] border-[#c9a227] font-semibold",
-    silver: "bg-[#c9a227] text-[#1a1200] border-[#c9a227] font-semibold",
-    muted: "bg-ld-charcoal text-ld-light border-ld-grey/50",
-    outline: "bg-transparent text-ld-silver border-ld-grey/40",
+    gold: "bg-am-gold-tint text-am-gold-deep border-am-gold/30 font-semibold",
+    silver: "bg-am-gold-tint text-am-gold-deep border-am-gold/30 font-semibold",
+    muted: "bg-am-bg-alt text-am-ink-soft border-am-line",
+    outline: "bg-transparent text-am-muted border-am-line-strong",
   };
 
   return (

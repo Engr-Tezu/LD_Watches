@@ -24,7 +24,7 @@ export default function AdminAddProductModal({ isOpen, onClose, categories }: Ad
     <ModalPortal>
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 admin-theme">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
             <motion.div initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 24, scale: 0.98 }} className="relative z-10 flex w-full max-w-[min(100%,56rem)] max-h-[min(92dvh,56rem)] flex-col">
               <div className="bg-ld-charcoal border border-ld-gold/20 rounded-2xl shadow-2xl flex flex-col max-h-[min(92dvh,56rem)] overflow-hidden">

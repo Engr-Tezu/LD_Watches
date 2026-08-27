@@ -29,8 +29,14 @@ export interface SiteSettings {
   heroTitlePrefix: string;
   heroRotatingWords: string[];
   heroDescription: string;
+  /** Scrolling strip above the navbar. Empty falls back to contact details. */
+  announcementMessages: string[];
   collectionTitle: string;
   collectionSubtitle: string;
+  categoriesSectionTitle: string;
+  categoriesSectionSubtitle: string;
+  newArrivalsTitle: string;
+  newArrivalsSubtitle: string;
   aboutTitle: string;
   aboutBlocks: AboutBlock[];
   aboutTagline: string;
@@ -47,6 +53,52 @@ export interface SiteSettings {
   contactSectionTitle: string;
   contactSectionDescription: string;
   contactButtonLabel: string;
+
+  /* ---- Navigation ---- */
+  navHomeLabel: string;
+  navCollectionLabel: string;
+  navAboutLabel: string;
+  navFaqLabel: string;
+  navShippingLabel: string;
+  searchPlaceholder: string;
+
+  /* ---- Buttons & link labels ---- */
+  heroPrimaryButtonLabel: string;
+  heroSecondaryButtonLabel: string;
+  viewAllLabel: string;
+  featuredButtonLabel: string;
+  newArrivalsLinkLabel: string;
+  whatsappChatLabel: string;
+
+  /* ---- Collection page ---- */
+  collectionPageTitle: string;
+  collectionPageSubtitle: string;
+  emptyResultsTitle: string;
+  emptyResultsMessage: string;
+
+  /* ---- Product page ---- */
+  productDescriptionHeading: string;
+  productFeaturesHeading: string;
+  orderButtonLabel: string;
+  cardOrderButtonLabel: string;
+  inStockLabel: string;
+  outOfStockLabel: string;
+  soldOutLabel: string;
+  featuredBadgeLabel: string;
+  waterResistantLabel: string;
+
+  /* ---- Footer ---- */
+  footerShopHeading: string;
+  footerSupportHeading: string;
+  footerAllProductsLabel: string;
+
+  /* ---- FAQ page ---- */
+  faqContactTitle: string;
+  faqContactDescription: string;
+
+  /* ---- Shipping page ---- */
+  shippingPageTitle: string;
+  shippingPageSubtitle: string;
   /** @deprecated legacy about card fields kept for migration */
   aboutCardOneTitle?: string;
   aboutCardOneDescription?: string;
@@ -54,6 +106,33 @@ export interface SiteSettings {
   aboutCardTwoDescription?: string;
   aboutCardThreeTitle?: string;
   aboutCardThreeDescription?: string;
+}
+
+/** Copy shown on product cards and the product detail page. */
+export interface ProductLabels {
+  orderNow: string;
+  orderOnWhatsApp: string;
+  soldOut: string;
+  featured: string;
+  inStock: string;
+  outOfStock: string;
+  waterResistant: string;
+  description: string;
+  features: string;
+}
+
+export function getProductLabels(settings: SiteSettings): ProductLabels {
+  return {
+    orderNow: settings.cardOrderButtonLabel,
+    orderOnWhatsApp: settings.orderButtonLabel,
+    soldOut: settings.soldOutLabel,
+    featured: settings.featuredBadgeLabel,
+    inStock: settings.inStockLabel,
+    outOfStock: settings.outOfStockLabel,
+    waterResistant: settings.waterResistantLabel,
+    description: settings.productDescriptionHeading,
+    features: settings.productFeaturesHeading,
+  };
 }
 
 export interface Category {

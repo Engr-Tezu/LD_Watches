@@ -76,11 +76,89 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
     ],
   },
   {
-    id: "collection",
-    label: "Collection",
+    // Rendered by a dedicated add/remove editor, so it declares no fields.
+    id: "announcement",
+    label: "Ticker (Announcement Bar)",
+    fields: [],
+  },
+  {
+    id: "nav",
+    label: "Navigation & Search",
     fields: [
-      { key: "collectionTitle", label: "Collection Title" },
-      { key: "collectionSubtitle", label: "Collection Subtitle", type: "textarea" },
+      { key: "navHomeLabel", label: "Home Link" },
+      { key: "navCollectionLabel", label: "Collection Link" },
+      { key: "navAboutLabel", label: "About Link" },
+      { key: "navFaqLabel", label: "FAQ Link" },
+      { key: "navShippingLabel", label: "Shipping Link" },
+      { key: "searchPlaceholder", label: "Search Placeholder" },
+    ],
+  },
+  {
+    id: "collection",
+    label: "Homepage Sections",
+    fields: [
+      { key: "categoriesSectionTitle", label: "Categories Section Title" },
+      {
+        key: "categoriesSectionSubtitle",
+        label: "Categories Section Subtitle",
+        type: "textarea",
+        placeholder: "Optional — leave empty to hide",
+      },
+      { key: "collectionTitle", label: "Featured Section Title" },
+      { key: "collectionSubtitle", label: "Featured Section Subtitle", type: "textarea" },
+      { key: "newArrivalsTitle", label: "New Arrivals Title" },
+      {
+        key: "newArrivalsSubtitle",
+        label: "New Arrivals Subtitle",
+        type: "textarea",
+        placeholder: "Optional — leave empty to hide",
+      },
+    ],
+  },
+  {
+    id: "buttons",
+    label: "Buttons & Links",
+    fields: [
+      { key: "heroPrimaryButtonLabel", label: "Hero Primary Button" },
+      { key: "heroSecondaryButtonLabel", label: "Hero Secondary Button" },
+      { key: "viewAllLabel", label: "Section “View All” Link" },
+      { key: "featuredButtonLabel", label: "Featured Section Button" },
+      { key: "newArrivalsLinkLabel", label: "New Arrivals Link" },
+      { key: "whatsappChatLabel", label: "WhatsApp Chat Button" },
+    ],
+  },
+  {
+    id: "collectionPage",
+    label: "Collection Page",
+    fields: [
+      { key: "collectionPageTitle", label: "Page Title" },
+      { key: "collectionPageSubtitle", label: "Page Subtitle", type: "textarea" },
+      { key: "emptyResultsTitle", label: "No Results Title" },
+      { key: "emptyResultsMessage", label: "No Results Message", type: "textarea" },
+    ],
+  },
+  {
+    id: "productPage",
+    label: "Product Page & Cards",
+    fields: [
+      { key: "productDescriptionHeading", label: "Description Heading" },
+      { key: "productFeaturesHeading", label: "Features Heading" },
+      { key: "orderButtonLabel", label: "Order Button (product page)" },
+      { key: "cardOrderButtonLabel", label: "Order Button (product card)" },
+      { key: "inStockLabel", label: "In Stock Label" },
+      { key: "outOfStockLabel", label: "Out of Stock Label" },
+      { key: "soldOutLabel", label: "Sold Out Badge" },
+      { key: "featuredBadgeLabel", label: "Featured Badge" },
+      { key: "waterResistantLabel", label: "Water Resistant Badge" },
+    ],
+  },
+  {
+    id: "footer",
+    label: "Footer",
+    fields: [
+      { key: "footerShopHeading", label: "Shop Column Heading" },
+      { key: "footerSupportHeading", label: "Support Column Heading" },
+      { key: "footerAllProductsLabel", label: "All Products Link" },
     ],
   },
   {
@@ -98,12 +176,16 @@ const SETTINGS_GROUPS: SettingsGroup[] = [
       { key: "faqPageTitle", label: "FAQ Page Title" },
       { key: "faqPageSubtitle", label: "FAQ Page Subtitle", type: "textarea" },
       { key: "faqImageUrl", label: "FAQ Image", type: "logo", placeholder: "/home-watch.jfif" },
+      { key: "faqContactTitle", label: "FAQ Contact Box Title" },
+      { key: "faqContactDescription", label: "FAQ Contact Box Text", type: "textarea" },
     ],
   },
   {
     id: "policies",
     label: "Shipping & Returns",
     fields: [
+      { key: "shippingPageTitle", label: "Page Title" },
+      { key: "shippingPageSubtitle", label: "Page Subtitle", type: "textarea" },
       { key: "shippingPolicyTitle", label: "Shipping Title" },
       { key: "shippingPolicyContent", label: "Shipping Policy", type: "textarea" },
       { key: "returnPolicyTitle", label: "Returns Title" },
@@ -143,6 +225,9 @@ function toFormState(settings: SiteSettings): SettingsFormState {
     seoKeywords: Array.isArray(settings.seoKeywords)
       ? settings.seoKeywords.join(", ")
       : String(settings.seoKeywords || ""),
+    announcementMessages: Array.isArray(settings.announcementMessages)
+      ? settings.announcementMessages
+      : [],
   };
 }
 
@@ -163,6 +248,7 @@ export default function AdminSettingsForm({
   const [blockDescription, setBlockDescription] = useState("");
   const [faqQuestion, setFaqQuestion] = useState("");
   const [faqAnswer, setFaqAnswer] = useState("");
+  const [announcementInput, setAnnouncementInput] = useState("");
 
   const update = <K extends keyof SettingsFormState>(name: K, value: SettingsFormState[K]) => {
     setSettings((prev) => ({ ...prev, [name]: value }));
@@ -205,11 +291,22 @@ export default function AdminSettingsForm({
               faq.question.toLowerCase().includes(query) ||
               faq.answer.toLowerCase().includes(query)
           ));
-      return { ...group, fields, aboutBlocksMatch, faqsMatch };
+      const announcementsMatch =
+        group.id === "announcement" &&
+        (!query ||
+          "announcement".includes(query) ||
+          "ticker".includes(query) ||
+          settings.announcementMessages.some((message) =>
+            message.toLowerCase().includes(query)
+          ));
+      return { ...group, fields, aboutBlocksMatch, faqsMatch, announcementsMatch };
     }).filter((group) => {
       if (groupFilter !== "all" && group.id !== groupFilter) return false;
       if (group.id === "about") return group.fields.length > 0 || group.aboutBlocksMatch;
       if (group.id === "faq") return group.fields.length > 0 || group.faqsMatch;
+      if (group.id === "announcement") {
+        return group.fields.length > 0 || group.announcementsMatch;
+      }
       return group.fields.length > 0;
     });
   }, [groupFilter, search, settings]);
@@ -273,6 +370,35 @@ export default function AdminSettingsForm({
     update("aboutBlocks", next);
   };
 
+  const addAnnouncement = () => {
+    const text = announcementInput.trim();
+    if (!text) return;
+    update("announcementMessages", [...settings.announcementMessages, text]);
+    setAnnouncementInput("");
+  };
+
+  const updateAnnouncement = (index: number, text: string) => {
+    const next = [...settings.announcementMessages];
+    next[index] = text;
+    update("announcementMessages", next);
+  };
+
+  const removeAnnouncement = (index: number) => {
+    update(
+      "announcementMessages",
+      settings.announcementMessages.filter((_, i) => i !== index)
+    );
+  };
+
+  const moveAnnouncement = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= settings.announcementMessages.length) return;
+    const next = [...settings.announcementMessages];
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    update("announcementMessages", next);
+  };
+
   const addFaq = () => {
     const question = faqQuestion.trim();
     const answer = faqAnswer.trim();
@@ -334,6 +460,9 @@ export default function AdminSettingsForm({
         seoKeywords: settings.seoKeywords
           .split(",")
           .map((word) => word.trim())
+          .filter(Boolean),
+        announcementMessages: settings.announcementMessages
+          .map((message) => message.trim())
           .filter(Boolean),
       };
       const res = await fetch("/api/settings", {
@@ -465,6 +594,86 @@ export default function AdminSettingsForm({
                 );
               })}
             </div>
+
+            {group.id === "announcement" && (
+              <div className="space-y-3">
+                <p className="text-ld-silver text-sm">
+                  Messages scroll across the strip above the header. Leave the list empty to
+                  show your phone number and address instead.
+                </p>
+
+                <div className="flex gap-3">
+                  <input
+                    value={announcementInput}
+                    onChange={(e) => setAnnouncementInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addAnnouncement();
+                      }
+                    }}
+                    className={inputClass}
+                    placeholder="e.g. Free delivery on orders over Rs 5,000"
+                  />
+                  <button
+                    type="button"
+                    onClick={addAnnouncement}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-ld-gold/15 text-ld-gold border border-ld-gold/25 hover:bg-ld-gold/25 transition-colors shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
+
+                {settings.announcementMessages.length > 0 ? (
+                  <ul className="space-y-2">
+                    {settings.announcementMessages.map((message, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-3 rounded-xl border border-ld-grey/40 bg-ld-dark/60 px-3 py-2"
+                      >
+                        <input
+                          value={message}
+                          onChange={(e) => updateAnnouncement(index, e.target.value)}
+                          aria-label={`Ticker message ${index + 1}`}
+                          className="flex-1 min-w-0 bg-transparent text-white text-sm focus:outline-none"
+                        />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => moveAnnouncement(index, -1)}
+                            disabled={index === 0}
+                            className="px-2 py-1 rounded-lg text-ld-silver hover:text-white hover:bg-white/5 disabled:opacity-30 text-xs"
+                          >
+                            Up
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveAnnouncement(index, 1)}
+                            disabled={index === settings.announcementMessages.length - 1}
+                            className="px-2 py-1 rounded-lg text-ld-silver hover:text-white hover:bg-white/5 disabled:opacity-30 text-xs"
+                          >
+                            Down
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeAnnouncement(index)}
+                            className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                            aria-label={`Remove ticker message ${index + 1}`}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-ld-silver text-sm">
+                    No ticker messages — your contact details will be shown.
+                  </p>
+                )}
+              </div>
+            )}
 
             {group.id === "about" && (
               <div className="space-y-3 pt-2 border-t border-ld-grey/30">

@@ -50,7 +50,7 @@ export default function AdminProductViewModal({
       <AnimatePresence>
         {product && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 md:p-6 admin-theme"
             role="presentation"
           >
             <motion.button

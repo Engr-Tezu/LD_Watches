@@ -52,7 +52,7 @@ export default function TypewriterRotate({
   return (
     <span className={className}>
       {displayText}
-      <span className="inline-block w-[3px] h-[0.85em] bg-ld-gold ml-1 align-middle animate-pulse" />
+      <span className="inline-block w-[3px] h-[0.85em] bg-am-gold ml-1 align-middle animate-pulse" />
     </span>
   );
 }

@@ -1,35 +1,124 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Home, Package, Info, ChevronRight, HelpCircle } from "lucide-react";
+import {
+  Menu,
+  X,
+  Home,
+  Package,
+  Info,
+  ChevronRight,
+  HelpCircle,
+  Search,
+  Truck,
+  Phone,
+} from "lucide-react";
 import SiteLogo from "@/components/ui/SiteLogo";
-import { SiteSettings } from "@/types/site";
+import { Category, SiteSettings } from "@/types/site";
 
-const navLinks = [
-  { href: "/", label: "Home", hash: false, icon: Home },
-  { href: "/products", label: "Collection", hash: false, icon: Package },
-  { href: "/#about", label: "About", hash: true, id: "about", icon: Info },
-  { href: "/#faq", label: "FAQ", hash: true, id: "faq", icon: HelpCircle },
-];
+interface NavLink {
+  href: string;
+  label: string;
+  hash: boolean;
+  id?: string;
+  icon: typeof Home;
+}
 
-function isActive(pathname: string, link: (typeof navLinks)[0]) {
+/** Labels come from site settings so the admin can rename every link. */
+function buildNavLinks(settings: SiteSettings): NavLink[] {
+  return [
+    { href: "/", label: settings.navHomeLabel, hash: false, icon: Home },
+    { href: "/products", label: settings.navCollectionLabel, hash: false, icon: Package },
+    { href: "/#about", label: settings.navAboutLabel, hash: true, id: "about", icon: Info },
+    { href: "/#faq", label: settings.navFaqLabel, hash: true, id: "faq", icon: HelpCircle },
+    {
+      href: "/shipping-returns",
+      label: settings.navShippingLabel,
+      hash: false,
+      icon: Truck,
+    },
+  ];
+}
+
+function isActive(pathname: string, link: NavLink) {
   if (link.hash) return false;
   if (link.href === "/") return pathname === "/";
   return pathname.startsWith(link.href.split("#")[0]);
 }
 
-export default function Navbar({ settings }: { settings: SiteSettings }) {
+function SearchField({
+  value,
+  onChange,
+  onSubmit,
+  id,
+  placeholder,
+  autoFocus = false,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  onSubmit: (e: FormEvent) => void;
+  id: string;
+  placeholder: string;
+  autoFocus?: boolean;
+}) {
+  return (
+    <form onSubmit={onSubmit} role="search" className="relative w-full">
+      <label htmlFor={id} className="sr-only">
+        {placeholder}
+      </label>
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-am-muted" />
+      <input
+        id={id}
+        type="search"
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-full border border-am-line bg-am-card py-2.5 pl-10 pr-11 text-sm text-am-ink placeholder:text-am-muted focus:border-am-gold focus:outline-none"
+      />
+      <button
+        type="submit"
+        aria-label="Search"
+        className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-am-gold text-white transition-colors hover:bg-am-gold-deep"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+    </form>
+  );
+}
+
+export default function Navbar({
+  settings,
+  categories = [],
+}: {
+  settings: SiteSettings;
+  categories?: Category[];
+}) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [query, setQuery] = useState("");
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const lastSyncedQuery = useRef("");
+  const navLinks = buildNavLinks(settings);
 
   useEffect(() => setMounted(true), []);
+
+  // Keep the field in step with the URL when navigating between result pages.
+  useEffect(() => {
+    const urlQuery = searchParams.get("q") || "";
+    if (urlQuery !== lastSyncedQuery.current) {
+      lastSyncedQuery.current = urlQuery;
+      setQuery(urlQuery);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -38,7 +127,10 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => setIsOpen(false), [pathname]);
+  useEffect(() => {
+    setIsOpen(false);
+    setSearchOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -47,8 +139,20 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
     };
   }, [isOpen]);
 
+  const submitSearch = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const trimmed = query.trim();
+      lastSyncedQuery.current = trimmed;
+      setIsOpen(false);
+      setSearchOpen(false);
+      router.push(trimmed ? `/products?q=${encodeURIComponent(trimmed)}` : "/products");
+    },
+    [query, router]
+  );
+
   const handleNavClick = useCallback(
-    (link: (typeof navLinks)[0], e: React.MouseEvent) => {
+    (link: NavLink, e: React.MouseEvent) => {
       if (link.hash && link.id) {
         e.preventDefault();
         setIsOpen(false);
@@ -75,8 +179,7 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[100] md:hidden"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.72)" }}
+              className="fixed inset-0 z-[100] bg-am-dark/55 md:hidden"
               onClick={() => setIsOpen(false)}
               aria-hidden="true"
             />
@@ -86,103 +189,91 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="fixed top-0 right-0 bottom-0 z-[110] flex w-[min(20rem,86vw)] flex-col md:hidden border-l border-[#d4a82e]/30"
-              style={{
-                backgroundColor: "#0c0c0c",
-                boxShadow: "-24px 0 60px rgba(0,0,0,0.75)",
-              }}
+              className="fixed bottom-0 right-0 top-0 z-[110] flex w-[min(21rem,88vw)] flex-col border-l border-am-line bg-am-bg shadow-2xl md:hidden"
               role="dialog"
               aria-modal="true"
               aria-label="Navigation menu"
             >
-              <div
-                className="flex h-[4.25rem] items-center justify-between px-5 border-b"
-                style={{ borderColor: "rgba(212, 168, 46, 0.2)", backgroundColor: "#111111" }}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <SiteLogo
-                    size="admin"
-                    logoUrl={settings.logoUrl}
-                    alt={settings.siteName}
-                  />
-                  <p className="truncate font-[family-name:var(--font-display)] text-sm font-semibold text-white">
+              <div className="flex h-[4.25rem] items-center justify-between border-b border-am-line bg-am-card px-4">
+                <div className="flex min-w-0 items-center gap-2">
+                  <SiteLogo size="admin" logoUrl={settings.logoUrl} alt={settings.siteName} />
+                  <p className="truncate font-[family-name:var(--font-display)] text-sm font-semibold text-am-ink">
                     {settings.siteNameShort || settings.siteName}
                   </p>
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="rounded-full p-2 text-[#a3a3a3] transition-colors hover:text-[#ecc84a]"
+                  className="rounded-full p-2 text-am-muted transition-colors hover:bg-am-bg-alt hover:text-am-ink"
                   aria-label="Close menu"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="flex-1 space-y-1.5 overflow-y-auto px-3 py-4" style={{ backgroundColor: "#0c0c0c" }}>
-                {navLinks.map((link) => {
-                  const active = isActive(pathname, link);
-                  const Icon = link.icon;
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={(e) => handleNavClick(link, e)}
-                      className={`group flex items-center gap-2.5 rounded-xl px-2.5 py-2 transition-all duration-300 ${
-                        active ? "border" : ""
-                      }`}
-                      style={
-                        active
-                          ? {
-                              backgroundColor: "rgba(212, 168, 46, 0.18)",
-                              borderColor: "rgba(212, 168, 46, 0.45)",
-                              color: "#ecc84a",
-                            }
-                          : {
-                              backgroundColor: "transparent",
-                              borderColor: "transparent",
-                              color: "#e5e5e5",
-                            }
-                      }
-                    >
-                      <span
-                        className="flex h-8 w-8 items-center justify-center shrink-0 rounded-lg border"
-                        style={
+              <div className="flex-1 overflow-y-auto px-3 py-4">
+                <div className="space-y-1.5">
+                  {navLinks.map((link) => {
+                    const active = isActive(pathname, link);
+                    const Icon = link.icon;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={(e) => handleNavClick(link, e)}
+                        className={`group flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all duration-200 ${
                           active
-                            ? {
-                                color: "#ecc84a",
-                                borderColor: "rgba(212, 168, 46, 0.45)",
-                                backgroundColor: "rgba(212, 168, 46, 0.14)",
-                              }
-                            : {
-                                color: "#d4a82e",
-                                borderColor: "rgba(212, 168, 46, 0.25)",
-                                backgroundColor: "rgba(212, 168, 46, 0.06)",
-                              }
-                        }
+                            ? "border-am-gold/40 bg-am-gold-tint text-am-gold-deep"
+                            : "border-transparent text-am-ink-soft hover:bg-am-bg-alt"
+                        }`}
                       >
-                        <Icon className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="min-w-0 flex-1 font-[family-name:var(--font-display)] text-sm font-medium tracking-wide">
-                        {link.label}
-                      </span>
-                      <ChevronRight
-                        className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
-                        style={{ color: active ? "#d4a82e" : "#666" }}
-                      />
-                    </Link>
-                  );
-                })}
+                        <span
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-am-card text-am-gold ${
+                            active ? "border-am-gold/40" : "border-am-line"
+                          }`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="min-w-0 flex-1 font-[family-name:var(--font-display)] text-sm font-medium tracking-wide">
+                          {link.label}
+                        </span>
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-am-muted transition-transform duration-200 group-hover:translate-x-0.5" />
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {categories.length > 0 && (
+                  <div className="mt-6">
+                    <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-am-muted">
+                      {settings.categoriesSectionTitle}
+                    </p>
+                    <div className="flex flex-wrap gap-2 px-1">
+                      {categories.map((category) => (
+                        <Link
+                          key={category._id}
+                          href={`/products?category=${encodeURIComponent(category.name)}`}
+                          onClick={() => setIsOpen(false)}
+                          className="rounded-full border border-am-line bg-am-card px-3 py-1.5 text-xs text-am-ink-soft transition-colors hover:border-am-gold hover:text-am-gold"
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div
-                className="px-5 py-4 border-t"
-                style={{ borderColor: "rgba(212, 168, 46, 0.2)", backgroundColor: "#111111" }}
-              >
-                <div className="mb-3 h-px w-12 bg-gradient-to-r from-[#d4a82e] to-transparent" />
-                <p className="text-xs leading-relaxed text-[#a3a3a3]">
-                  Premium products, curated for everyday elegance.
-                </p>
-              </div>
+              {settings.contactPhone && (
+                <div className="border-t border-am-line bg-am-card px-4 py-4">
+                  <a
+                    href={`tel:${settings.contactPhone.replace(/\s+/g, "")}`}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-am-ink transition-colors hover:text-am-gold"
+                  >
+                    <Phone className="h-4 w-4 text-am-gold" />
+                    {settings.contactPhone}
+                  </a>
+                </div>
+              )}
             </motion.aside>
           </>
         )}
@@ -193,42 +284,34 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass-nav ${
-          scrolled || isOpen ? "shadow-lg shadow-black/40" : ""
+        className={`sticky top-0 z-50 transition-shadow duration-300 glass-nav ${
+          scrolled ? "glass-nav-scrolled" : ""
         }`}
       >
-        <nav className="w-full pl-1 pr-3 sm:pl-2 sm:pr-5 lg:px-4">
-          <div className="flex h-[4.25rem] items-center md:h-20">
-            <Link
-              href="/"
-              className="group z-50 -my-1 flex min-w-0 shrink-0 items-center gap-0"
-            >
-              <SiteLogo
-                size="nav"
-                priority
-                logoUrl={settings.logoUrl}
-                alt={settings.siteName}
-              />
-              <span className="-ml-1 hidden truncate font-[family-name:var(--font-display)] text-sm font-bold leading-tight text-white sm:-ml-1.5 sm:text-base md:inline md:max-w-none md:text-lg">
+        <nav className="mx-auto w-full max-w-7xl px-2 sm:px-4 lg:px-6">
+          <div className="flex h-[4.25rem] items-center gap-3 md:h-20 md:gap-6">
+            <Link href="/" className="z-50 flex min-w-0 shrink-0 items-center gap-0">
+              <SiteLogo size="nav" priority logoUrl={settings.logoUrl} alt={settings.siteName} />
+              <span className="-ml-1 hidden truncate font-[family-name:var(--font-display)] text-sm font-bold leading-tight text-am-ink sm:-ml-1.5 sm:text-base md:inline md:text-lg">
                 {settings.siteName}
               </span>
             </Link>
 
-            <div className="ml-auto hidden items-center gap-6 pr-2 md:flex lg:gap-8 lg:pr-4">
+            <div className="ml-auto hidden items-center gap-5 md:flex lg:gap-7">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={(e) => handleNavClick(link, e)}
-                  className={`relative text-sm font-medium uppercase tracking-wide transition-colors duration-300 group ${
+                  className={`group relative text-[13px] font-medium uppercase tracking-wide transition-colors duration-300 lg:text-sm ${
                     isActive(pathname, link)
-                      ? "text-ld-gold-light"
-                      : "text-ld-light hover:text-ld-gold-light"
+                      ? "text-am-gold"
+                      : "text-am-ink-soft hover:text-am-gold"
                   }`}
                 >
                   {link.label}
                   <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-ld-gold transition-all duration-300 ${
+                    className={`absolute -bottom-1.5 left-0 h-0.5 bg-am-gold transition-all duration-300 ${
                       isActive(pathname, link) ? "w-full" : "w-0 group-hover:w-full"
                     }`}
                   />
@@ -236,19 +319,59 @@ export default function Navbar({ settings }: { settings: SiteSettings }) {
               ))}
             </div>
 
-            <button
-              onClick={() => setIsOpen((open) => !open)}
-              className={`z-50 ml-auto rounded-lg p-1.5 transition-colors md:hidden ${
-                isOpen
-                  ? "text-[#a3a3a3] hover:bg-white/5 hover:text-[#ecc84a]"
-                  : "text-[#ecc84a] border border-[#d4a82e]/45 bg-[#d4a82e]/10 backdrop-blur-sm hover:bg-[#d4a82e]/18 hover:border-[#d4a82e]/70"
-              }`}
-              aria-label={isOpen ? "Close menu" : "Open menu"}
-              aria-expanded={isOpen}
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            <div className="hidden lg:block lg:w-64 xl:w-72">
+              <SearchField
+                id="desktop-search"
+                value={query}
+                onChange={setQuery}
+                onSubmit={submitSearch}
+                placeholder={settings.searchPlaceholder}
+              />
+            </div>
+
+            <div className="ml-auto flex items-center gap-1.5 md:ml-0 lg:hidden">
+              <button
+                onClick={() => setSearchOpen((open) => !open)}
+                className="rounded-full border border-am-line bg-am-card p-2 text-am-ink transition-colors hover:border-am-gold hover:text-am-gold"
+                aria-label={searchOpen ? "Close search" : "Open search"}
+                aria-expanded={searchOpen}
+              >
+                {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+              </button>
+              <button
+                onClick={() => setIsOpen((open) => !open)}
+                className="rounded-full border border-am-line bg-am-card p-2 text-am-ink transition-colors hover:border-am-gold hover:text-am-gold md:hidden"
+                aria-label={isOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isOpen}
+              >
+                {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
+
+          <AnimatePresence initial={false}>
+            {searchOpen && (
+              <motion.div
+                key="inline-search"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                className="overflow-hidden lg:hidden"
+              >
+                <div className="pb-3 pt-1">
+                  <SearchField
+                    id="inline-search"
+                    value={query}
+                    onChange={setQuery}
+                    onSubmit={submitSearch}
+                    placeholder={settings.searchPlaceholder}
+                    autoFocus
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </nav>
       </header>
       {mobileMenu}

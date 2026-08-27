@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { getAdminSession } from "@/lib/auth";
-import { generateUniqueSlug, serializeProduct } from "@/lib/product-utils";
+import { generateUniqueSlug, serializeProduct, clampDiscount } from "@/lib/product-utils";
 import { categoryExists } from "@/lib/site";
 
 export async function GET(request: NextRequest) {
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       price,
+      discountPercentage,
       category,
       brand,
       images,
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
       slug,
       description,
       price: Number(price),
+      discountPercentage: clampDiscount(discountPercentage),
       category,
       brand,
       images: imageList,

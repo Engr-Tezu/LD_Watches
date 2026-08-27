@@ -44,7 +44,7 @@ export default function AdminLoginForm() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-ld-black">
+    <div className="admin-theme min-h-screen grid lg:grid-cols-2 bg-ld-black">
       {/* Brand panel */}
       <div className="hidden lg:flex relative flex-col items-center justify-center p-12 bg-gradient-to-br from-ld-charcoal via-ld-dark to-ld-black border-r border-ld-gold/10 overflow-hidden">
         <div className="absolute inset-0 opacity-20">

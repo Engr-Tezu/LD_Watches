@@ -27,11 +27,58 @@ export function isWaterResistant(product: Product): boolean {
   return Boolean(product.specifications?.waterResistance);
 }
 
+export interface ProductPricing {
+  /** What the customer actually pays. */
+  price: number;
+  /** Struck-through "was" price, or null when there is no discount. */
+  listPrice: number | null;
+  /** Whole-number percent off, 0 when there is no discount. */
+  discount: number;
+  /** Absolute amount saved, 0 when there is no discount. */
+  saving: number;
+}
+
+/**
+ * Single source of truth for what a product costs on the storefront.
+ *
+ * `discountPercentage` is the primary control: the stored `price` is the
+ * regular price and the sale price is derived from it. `originalPrice` is the
+ * older way of expressing the same thing and is still honoured for products
+ * that were set up before the percentage field existed.
+ */
+export function getProductPricing(product: Product): ProductPricing {
+  const regular = Math.max(0, Number(product.price) || 0);
+  const percent = Math.min(95, Math.max(0, Number(product.discountPercentage) || 0));
+
+  if (percent > 0) {
+    const sale = Math.round(regular * (1 - percent / 100));
+    return {
+      price: sale,
+      listPrice: regular,
+      discount: Math.round(percent),
+      saving: regular - sale,
+    };
+  }
+
+  const original = Number(product.originalPrice) || 0;
+  if (original > regular) {
+    return {
+      price: regular,
+      listPrice: original,
+      discount: Math.round(((original - regular) / original) * 100),
+      saving: original - regular,
+    };
+  }
+
+  return { price: regular, listPrice: null, discount: 0, saving: 0 };
+}
+
 export function generateWhatsAppLink(product: Product, options?: { whatsappNumber?: string; siteName?: string; siteUrl?: string }): string {
   const phoneNumber = options?.whatsappNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923001234567";
   const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
   const siteName = options?.siteName || "Our Store";
   const siteUrl = options?.siteUrl || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const pricing = getProductPricing(product);
   const message = [
     `Hello ${siteName}!`,
     "",
@@ -40,7 +87,10 @@ export function generateWhatsAppLink(product: Product, options?: { whatsappNumbe
     `*${product.name}*`,
     `Brand: ${product.brand}`,
     `Category: ${product.category}`,
-    `Price: ${formatPrice(product.price)}`,
+    `Price: ${formatPrice(pricing.price)}`,
+    pricing.listPrice
+      ? `Was: ${formatPrice(pricing.listPrice)} (${pricing.discount}% off)`
+      : "",
     isWaterResistant(product) ? "Water Resistant: Yes" : "",
     "",
     product.description.slice(0, 150),
@@ -56,7 +106,3 @@ export function cn(...classes: (string | boolean | undefined | null)[]): string 
   return classes.filter(Boolean).join(" ");
 }
 
-export function getDiscountPercentage(price: number, originalPrice?: number): number {
-  if (!originalPrice || originalPrice <= price) return 0;
-  return Math.round(((originalPrice - price) / originalPrice) * 100);
-}

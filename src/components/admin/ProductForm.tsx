@@ -7,6 +7,7 @@ import { ProductFormData, Product } from "@/types/product";
 import { Category } from "@/types/site";
 import { Upload, X, Loader2, Star, Plus } from "lucide-react";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { formatPrice } from "@/lib/utils";
 
 function normalizeFeatureList(features: unknown): string[] {
   if (!Array.isArray(features)) return [];
@@ -37,6 +38,7 @@ const defaultFormData: ProductFormData = {
   name: "",
   description: "",
   price: 0,
+  discountPercentage: 0,
   category: "",
   brand: "",
   images: [],
@@ -67,6 +69,7 @@ export default function ProductForm({
           name: initialData.name,
           description: initialData.description,
           price: initialData.price,
+          discountPercentage: initialData.discountPercentage ?? 0,
           category: initialData.category,
           brand: initialData.brand,
           images: initialData.images,
@@ -83,6 +86,13 @@ export default function ProductForm({
         }
       : { ...defaultFormData, category: categories[0]?.name || "" }
   );
+  // Mirrors getProductPricing() so the admin sees exactly what the site will show.
+  const discountPercent = Math.min(95, Math.max(0, Number(formData.discountPercentage) || 0));
+  const discountedPrice =
+    discountPercent > 0 && formData.price > 0
+      ? Math.round(formData.price * (1 - discountPercent / 100))
+      : null;
+
   const [featureInput, setFeatureInput] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -190,6 +200,7 @@ export default function ProductForm({
 
     const payload = {
       ...formData,
+      discountPercentage: Math.min(95, Math.max(0, Number(formData.discountPercentage) || 0)),
       mainImageIndex: Math.min(
         formData.mainImageIndex,
         Math.max(0, formData.images.length - 1)
@@ -281,6 +292,34 @@ export default function ProductForm({
             className={inputClass}
             placeholder="150000"
           />
+        </div>
+        <div>
+          <label htmlFor="discountPercentage" className={labelClass}>
+            Discount (%)
+          </label>
+          <input
+            id="discountPercentage"
+            name="discountPercentage"
+            type="number"
+            min="0"
+            max="95"
+            value={formData.discountPercentage || ""}
+            onChange={handleChange}
+            className={inputClass}
+            placeholder="0"
+          />
+          {discountedPrice !== null ? (
+            <p className="mt-2 text-xs text-ld-gold-light">
+              Customers pay{" "}
+              <span className="font-semibold">{formatPrice(discountedPrice)}</span> — the
+              regular price {formatPrice(formData.price)} is shown crossed out.
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-ld-silver">
+              Leave at 0 for no discount. Otherwise the sale price is calculated from the price
+              above.
+            </p>
+          )}
         </div>
       </div>
 

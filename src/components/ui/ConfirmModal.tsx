@@ -46,7 +46,7 @@ export default function ConfirmModal({
     <ModalPortal>
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 admin-theme">
           <motion.button
             type="button"
             initial={{ opacity: 0 }}

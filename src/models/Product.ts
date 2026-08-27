@@ -18,6 +18,8 @@ export interface IProduct extends Document {
   updatedAt: Date;
   shortDescription?: string;
   originalPrice?: number;
+  /** Marketing discount in percent (0–95). Drives the sale price shown on site. */
+  discountPercentage?: number;
   specifications?: Record<string, string>;
 }
 
@@ -38,6 +40,7 @@ const ProductSchema = new Schema<IProduct>(
     tags: { type: [String], default: [] },
     shortDescription: { type: String, default: "" },
     originalPrice: { type: Number, min: 0 },
+    discountPercentage: { type: Number, default: 0, min: 0, max: 95 },
     specifications: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true, collection: "watches" }

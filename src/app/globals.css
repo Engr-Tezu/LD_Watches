@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* ---- Admin / legacy dark palette (kept: the admin dashboard uses it) ---- */
   --color-ld-black: #080808;
   --color-ld-dark: #111111;
   --color-ld-charcoal: #1a1a1a;
@@ -13,8 +14,28 @@
   --color-ld-gold-muted: #8a6a18;
   --color-ld-whatsapp: #1fa855;
 
+  /* ---- Storefront light palette ---- */
+  --color-am-bg: #fbf9f5;
+  --color-am-bg-alt: #f4efe6;
+  --color-am-card: #ffffff;
+  --color-am-ink: #17140f;
+  --color-am-ink-soft: #4d463c;
+  --color-am-muted: #837a6c;
+  --color-am-line: #e7dfd1;
+  --color-am-line-strong: #d8ccb6;
+  --color-am-gold: #a97f14;
+  --color-am-gold-deep: #8a6710;
+  --color-am-gold-bright: #d4a82e;
+  --color-am-gold-tint: #f7efd9;
+  --color-am-dark: #15130f;
+  --color-am-dark-soft: #221e18;
+  --color-am-whatsapp: #159c4c;
+
   --font-display: "Playfair Display", Georgia, serif;
   --font-body: "Inter", system-ui, sans-serif;
+
+  /* Extra-small breakpoint for the hero banner crop. */
+  --breakpoint-xs: 26rem;
 }
 
 @layer base {
@@ -26,45 +47,72 @@
     scroll-behavior: smooth;
     margin: 0;
     padding: 0;
-    background-color: var(--color-ld-black);
+    background-color: var(--color-am-bg);
   }
 
   body {
     margin: 0;
     padding: 0;
-    background-color: var(--color-ld-black);
-    color: #f0f0f0;
+    background-color: var(--color-am-bg);
+    color: var(--color-am-ink);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background-color: color-mix(in srgb, var(--color-ld-gold) 35%, transparent);
-    color: white;
+    background-color: color-mix(in srgb, var(--color-am-gold-bright) 32%, transparent);
+    color: var(--color-am-ink);
   }
 
   ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--color-ld-dark);
+    background: var(--color-am-bg-alt);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--color-ld-grey);
-    border-radius: 4px;
+    background: var(--color-am-line-strong);
+    border-radius: 999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-ld-gold-dark);
+    background: var(--color-am-gold);
+  }
+
+  /* The storefront header is sticky — keep anchor targets clear of it. */
+  #about,
+  #faq,
+  #reviews,
+  #contact,
+  #categories,
+  #featured,
+  #new-arrivals,
+  #collection {
+    scroll-margin-top: 6rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-am-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
 @layer utilities {
   .text-gradient-gold {
-    background: linear-gradient(135deg, #f0c84a, var(--color-ld-gold), var(--color-ld-gold-dark));
+    background: linear-gradient(120deg, #c9971c, #a97f14 55%, #7d5d0d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gold gradient tuned for dark bands (banner overlay, footer) */
+  .text-gradient-gold-dark-bg {
+    background: linear-gradient(120deg, #f5d778, #d4a82e 55%, #b8891f);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -78,78 +126,224 @@
   }
 
   .glass-nav {
-    background: rgba(8, 8, 8, 0.94);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border-bottom: 1px solid rgba(212, 168, 46, 0.12);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    background: rgba(251, 249, 245, 0.88);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border-bottom: 1px solid var(--color-am-line);
+  }
+
+  .glass-nav-scrolled {
+    background: rgba(251, 249, 245, 0.97);
+    box-shadow: 0 6px 24px rgba(23, 20, 15, 0.07);
   }
 
   .glass-panel {
+    background: var(--color-am-card);
+    border: 1px solid var(--color-am-line);
+  }
+
+  .glass-card {
+    background: var(--color-am-card);
+    border: 1px solid var(--color-am-line);
+  }
+
+  .gold-glow {
+    box-shadow: 0 10px 26px -10px rgba(169, 127, 20, 0.55);
+  }
+
+  .gold-glow-hover {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  .gold-glow-hover:hover {
+    box-shadow: 0 16px 34px -14px rgba(169, 127, 20, 0.45);
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-am-gold text-white font-semibold rounded-full hover:bg-am-gold-deep transition-all duration-300;
+  }
+
+  .btn-outline-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-am-line-strong text-am-ink font-semibold rounded-full hover:border-am-gold hover:text-am-gold transition-all duration-300;
+  }
+
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-am-dark text-white font-semibold rounded-full hover:bg-am-dark-soft transition-all duration-300;
+  }
+
+  .section-heading {
+    @apply font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl font-bold text-am-ink;
+  }
+
+  .section-eyebrow {
+    @apply text-am-gold text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em];
+  }
+
+  .card-surface {
+    background: var(--color-am-card);
+    border: 1px solid var(--color-am-line);
+    border-radius: 1rem;
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .card-surface:hover {
+    border-color: var(--color-am-line-strong);
+    box-shadow: 0 18px 40px -24px rgba(23, 20, 15, 0.4);
+  }
+
+  .rule-gold {
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--color-am-gold-bright),
+      transparent
+    );
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Admin dashboard: stays on the original dark theme.                  */
+  /* The storefront and the admin share utility names (glass-panel,      */
+  /* btn-gold, card-surface, …). The bare definitions above are the      */
+  /* light storefront ones; these descendant rules win inside the admin  */
+  /* on specificity, restoring the dark look it had before.              */
+  /* Applied via `.admin-theme` on the admin shell, the login screen and */
+  /* every portal-rendered admin modal (those mount outside the shell).  */
+  /* ------------------------------------------------------------------ */
+  .admin-theme {
+    color: #f0f0f0;
+  }
+
+  .admin-theme ::-webkit-scrollbar-track {
+    background: var(--color-ld-dark);
+  }
+
+  .admin-theme ::-webkit-scrollbar-thumb {
+    background: var(--color-ld-grey);
+  }
+
+  .admin-theme :focus-visible {
+    outline-color: var(--color-ld-gold);
+  }
+
+  .admin-theme .glass {
+    background: rgba(8, 8, 8, 0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(212, 168, 46, 0.14);
+  }
+
+  .admin-theme .glass-panel {
     background: rgba(26, 26, 26, 0.42);
     backdrop-filter: blur(16px) saturate(150%);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
     border: 1px solid rgba(212, 168, 46, 0.14);
   }
 
-  .glass-card {
+  .admin-theme .glass-card {
     background: rgba(26, 26, 26, 0.5);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(212, 168, 46, 0.12);
   }
 
-  .gold-glow {
-    box-shadow: 0 0 32px rgba(212, 168, 46, 0.18);
-  }
-
-  .gold-glow-hover:hover {
-    box-shadow: 0 0 42px rgba(212, 168, 46, 0.28);
-  }
-
-  .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-ld-gold text-[#1a1200] font-semibold rounded-lg hover:bg-ld-gold-light transition-all duration-300;
-  }
-
-  .btn-outline-gold {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-ld-gold/40 text-ld-gold-light font-semibold rounded-lg hover:border-ld-gold hover:bg-ld-gold/10 transition-all duration-300;
-  }
-
-  .section-heading {
-    @apply font-[family-name:var(--font-display)] text-3xl sm:text-4xl md:text-5xl font-bold text-white;
-  }
-
-  .card-surface {
+  .admin-theme .card-surface {
     background: rgba(26, 26, 26, 0.5);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(212, 168, 46, 0.12);
     border-radius: 1rem;
-    transition: all 0.3s;
+    box-shadow: none;
   }
 
-  .card-surface:hover {
+  .admin-theme .card-surface:hover {
     border-color: rgba(212, 168, 46, 0.3);
+    box-shadow: none;
+  }
+
+  .admin-theme .btn-gold {
+    background-color: var(--color-ld-gold);
+    color: #1a1200;
+    border-radius: 0.5rem;
+  }
+
+  .admin-theme .btn-gold:hover {
+    background-color: var(--color-ld-gold-light);
+    color: #1a1200;
+  }
+
+  .admin-theme .text-gradient-gold {
+    background: linear-gradient(135deg, #f0c84a, var(--color-ld-gold), var(--color-ld-gold-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .admin-theme .gold-glow {
+    box-shadow: 0 0 32px rgba(212, 168, 46, 0.18);
+  }
+
+  .admin-theme .gold-glow-hover:hover {
+    box-shadow: 0 0 42px rgba(212, 168, 46, 0.28);
+  }
+
+  .admin-theme .animate-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(212, 168, 46, 0.12), transparent);
+    background-size: 200% 100%;
   }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-gold {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(212, 168, 46, 0.12), transparent);
+  background: linear-gradient(90deg, transparent, rgba(169, 127, 20, 0.12), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -162,11 +356,15 @@
   animation: pulse-gold 2s ease-in-out infinite;
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.animate-marquee {
+  animation: marquee 26s linear infinite;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-float,
+  .animate-pulse-gold,
+  .animate-shimmer {
+    animation: none;
+  }
 }

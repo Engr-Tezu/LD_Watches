@@ -12,6 +12,13 @@ export function buildProductLookupQuery(identifier: string) {
   return { slug: identifier };
 }
 
+/** Coerce any client-supplied discount into the 0–95 whole-percent range. */
+export function clampDiscount(value: unknown): number {
+  const percent = Number(value);
+  if (!Number.isFinite(percent) || percent <= 0) return 0;
+  return Math.min(95, Math.round(percent));
+}
+
 export function createSlug(name: string): string {
   return slugify(name, { lower: true, strict: true });
 }

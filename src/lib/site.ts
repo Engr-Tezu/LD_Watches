@@ -63,8 +63,13 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroRotatingWords: ["Style", "Quality", "Luxury", "Craftsmanship", "Essentials"],
   heroDescription:
     "Discover curated premium products that define quality, confidence, and everyday elegance.",
+  announcementMessages: [],
   collectionTitle: "Featured Collection",
   collectionSubtitle: "Handpicked products chosen for style, quality, and value.",
+  categoriesSectionTitle: "Shop by Category",
+  categoriesSectionSubtitle: "",
+  newArrivalsTitle: "New Arrivals",
+  newArrivalsSubtitle: "",
   aboutTitle: "Welcome to LUXE DIAL WATCHES",
   aboutBlocks: DEFAULT_ABOUT_BLOCKS,
   aboutTagline: "Quality and style for every moment.",
@@ -84,7 +89,83 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   contactSectionDescription:
     "Browse our collection and reach out for quick assistance. We are here to help you choose the right product.",
   contactButtonLabel: "Start Shopping",
+
+  navHomeLabel: "Home",
+  navCollectionLabel: "Collection",
+  navAboutLabel: "About",
+  navFaqLabel: "FAQ",
+  navShippingLabel: "Shipping",
+  searchPlaceholder: "Search products…",
+
+  heroPrimaryButtonLabel: "Shop the Collection",
+  heroSecondaryButtonLabel: "Learn More",
+  viewAllLabel: "View all products",
+  featuredButtonLabel: "Browse the Full Collection",
+  newArrivalsLinkLabel: "See what's new",
+  whatsappChatLabel: "Chat on WhatsApp",
+
+  collectionPageTitle: "Our Collection",
+  collectionPageSubtitle: "Browse every product in our store.",
+  emptyResultsTitle: "No products found",
+  emptyResultsMessage: "Check back soon for new arrivals.",
+
+  productDescriptionHeading: "Description",
+  productFeaturesHeading: "Features & Specifications",
+  orderButtonLabel: "Order on WhatsApp",
+  cardOrderButtonLabel: "Order Now",
+  inStockLabel: "In Stock",
+  outOfStockLabel: "Out of Stock",
+  soldOutLabel: "Sold Out",
+  featuredBadgeLabel: "Featured",
+  waterResistantLabel: "Water Resistant",
+
+  footerShopHeading: "Shop",
+  footerSupportHeading: "Support",
+  footerAllProductsLabel: "All Products",
+
+  faqContactTitle: "Still have a question?",
+  faqContactDescription:
+    "Message us directly and we will get back to you within one business day.",
+
+  shippingPageTitle: "Shipping & Returns",
+  shippingPageSubtitle: "Clear information about delivery and our return process.",
 };
+
+/** Field names that are plain strings falling back to DEFAULT_SITE_SETTINGS. */
+const SIMPLE_TEXT_KEYS = [
+  "navHomeLabel",
+  "navCollectionLabel",
+  "navAboutLabel",
+  "navFaqLabel",
+  "navShippingLabel",
+  "searchPlaceholder",
+  "heroPrimaryButtonLabel",
+  "heroSecondaryButtonLabel",
+  "viewAllLabel",
+  "featuredButtonLabel",
+  "newArrivalsLinkLabel",
+  "whatsappChatLabel",
+  "collectionPageTitle",
+  "collectionPageSubtitle",
+  "emptyResultsTitle",
+  "emptyResultsMessage",
+  "productDescriptionHeading",
+  "productFeaturesHeading",
+  "orderButtonLabel",
+  "cardOrderButtonLabel",
+  "inStockLabel",
+  "outOfStockLabel",
+  "soldOutLabel",
+  "featuredBadgeLabel",
+  "waterResistantLabel",
+  "footerShopHeading",
+  "footerSupportHeading",
+  "footerAllProductsLabel",
+  "faqContactTitle",
+  "faqContactDescription",
+  "shippingPageTitle",
+  "shippingPageSubtitle",
+] as const satisfies ReadonlyArray<keyof SiteSettings>;
 
 export const DEFAULT_CATEGORIES = [
   { name: "Watches", slug: "watches", sortOrder: 0, isActive: true },
@@ -128,6 +209,29 @@ function pickWords(value: unknown, fallback: string[]): string[] {
     return value
       .split(",")
       .map((word) => word.trim())
+      .filter(Boolean);
+  }
+  return fallback;
+}
+
+/**
+ * Labels fall back to the default when blank — an empty button or heading is
+ * never what the admin meant, so a cleared field restores the built-in text.
+ */
+function pickLabel(value: unknown, fallback: string): string {
+  const text = typeof value === "string" ? value.trim() : "";
+  return text || fallback;
+}
+
+/** Like {@link pickWords} but newline-separated, so entries may contain commas. */
+function pickLines(value: unknown, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    return value.map((line) => String(line).trim()).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(/\r?\n/)
+      .map((line) => line.trim())
       .filter(Boolean);
   }
   return fallback;
@@ -206,7 +310,13 @@ export function normalizeFaqs(value: unknown): FaqItem[] {
 
 export function normalizeSiteSettings(input?: Partial<SiteSettings> | null): SiteSettings {
   const source = input || {};
+
+  const labels = Object.fromEntries(
+    SIMPLE_TEXT_KEYS.map((key) => [key, pickLabel(source[key], DEFAULT_SITE_SETTINGS[key])])
+  ) as Pick<SiteSettings, (typeof SIMPLE_TEXT_KEYS)[number]>;
+
   return {
+    ...labels,
     _id: source._id ? String(source._id) : undefined,
     siteName: pickString(source.siteName, DEFAULT_SITE_SETTINGS.siteName),
     siteNameShort: pickString(source.siteNameShort, DEFAULT_SITE_SETTINGS.siteNameShort),
@@ -224,10 +334,30 @@ export function normalizeSiteSettings(input?: Partial<SiteSettings> | null): Sit
     heroTitlePrefix: pickString(source.heroTitlePrefix, DEFAULT_SITE_SETTINGS.heroTitlePrefix),
     heroRotatingWords: pickWords(source.heroRotatingWords, DEFAULT_SITE_SETTINGS.heroRotatingWords),
     heroDescription: pickString(source.heroDescription, DEFAULT_SITE_SETTINGS.heroDescription),
+    announcementMessages: pickLines(
+      source.announcementMessages,
+      DEFAULT_SITE_SETTINGS.announcementMessages
+    ),
     collectionTitle: pickString(source.collectionTitle, DEFAULT_SITE_SETTINGS.collectionTitle),
     collectionSubtitle: pickString(
       source.collectionSubtitle,
       DEFAULT_SITE_SETTINGS.collectionSubtitle
+    ),
+    categoriesSectionTitle: pickString(
+      source.categoriesSectionTitle,
+      DEFAULT_SITE_SETTINGS.categoriesSectionTitle
+    ),
+    categoriesSectionSubtitle: pickString(
+      source.categoriesSectionSubtitle,
+      DEFAULT_SITE_SETTINGS.categoriesSectionSubtitle
+    ),
+    newArrivalsTitle: pickString(
+      source.newArrivalsTitle,
+      DEFAULT_SITE_SETTINGS.newArrivalsTitle
+    ),
+    newArrivalsSubtitle: pickString(
+      source.newArrivalsSubtitle,
+      DEFAULT_SITE_SETTINGS.newArrivalsSubtitle
     ),
     aboutTitle: pickString(source.aboutTitle, DEFAULT_SITE_SETTINGS.aboutTitle),
     aboutBlocks: normalizeAboutBlocks(source.aboutBlocks, source),

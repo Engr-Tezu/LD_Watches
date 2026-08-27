@@ -1,5 +1,8 @@
+import { Suspense } from "react";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import FloatingWhatsApp from "@/components/layout/FloatingWhatsApp";
 import HashScrollHandler from "@/components/layout/HashScrollHandler";
 import { getCategories, getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
 
@@ -16,11 +19,19 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-ld-black">
+    <div className="flex min-h-screen flex-col bg-am-bg">
       <HashScrollHandler />
-      <Navbar settings={settings} />
-      <main className="flex-1 bg-ld-black">{children}</main>
+      <AnnouncementBar settings={settings} />
+      {/* Navbar reads `?q=` via useSearchParams, so it needs a Suspense boundary. */}
+      <Suspense fallback={<div className="h-[4.25rem] border-b border-am-line md:h-20" />}>
+        <Navbar settings={settings} categories={categories} />
+      </Suspense>
+      <main className="flex-1 bg-am-bg">{children}</main>
       <Footer settings={settings} categories={categories} />
+      <FloatingWhatsApp
+        whatsappNumber={settings.whatsappNumber}
+        siteName={settings.siteNameShort || settings.siteName}
+      />
     </div>
   );
 }

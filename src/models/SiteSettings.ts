@@ -28,8 +28,13 @@ export interface ISiteSettings extends Document {
   heroTitlePrefix: string;
   heroRotatingWords: string[];
   heroDescription: string;
+  announcementMessages: string[];
   collectionTitle: string;
   collectionSubtitle: string;
+  categoriesSectionTitle: string;
+  categoriesSectionSubtitle: string;
+  newArrivalsTitle: string;
+  newArrivalsSubtitle: string;
   aboutTitle: string;
   aboutBlocks: IAboutBlock[];
   aboutTagline: string;
@@ -46,6 +51,38 @@ export interface ISiteSettings extends Document {
   contactSectionTitle: string;
   contactSectionDescription: string;
   contactButtonLabel: string;
+  navHomeLabel: string;
+  navCollectionLabel: string;
+  navAboutLabel: string;
+  navFaqLabel: string;
+  navShippingLabel: string;
+  searchPlaceholder: string;
+  heroPrimaryButtonLabel: string;
+  heroSecondaryButtonLabel: string;
+  viewAllLabel: string;
+  featuredButtonLabel: string;
+  newArrivalsLinkLabel: string;
+  whatsappChatLabel: string;
+  collectionPageTitle: string;
+  collectionPageSubtitle: string;
+  emptyResultsTitle: string;
+  emptyResultsMessage: string;
+  productDescriptionHeading: string;
+  productFeaturesHeading: string;
+  orderButtonLabel: string;
+  cardOrderButtonLabel: string;
+  inStockLabel: string;
+  outOfStockLabel: string;
+  soldOutLabel: string;
+  featuredBadgeLabel: string;
+  waterResistantLabel: string;
+  footerShopHeading: string;
+  footerSupportHeading: string;
+  footerAllProductsLabel: string;
+  faqContactTitle: string;
+  faqContactDescription: string;
+  shippingPageTitle: string;
+  shippingPageSubtitle: string;
   aboutCardOneTitle?: string;
   aboutCardOneDescription?: string;
   aboutCardTwoTitle?: string;
@@ -91,8 +128,13 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     heroTitlePrefix: { type: String, default: "" },
     heroRotatingWords: { type: [String], default: [] },
     heroDescription: { type: String, default: "" },
+    announcementMessages: { type: [String], default: [] },
     collectionTitle: { type: String, default: "" },
     collectionSubtitle: { type: String, default: "" },
+    categoriesSectionTitle: { type: String, default: "" },
+    categoriesSectionSubtitle: { type: String, default: "" },
+    newArrivalsTitle: { type: String, default: "" },
+    newArrivalsSubtitle: { type: String, default: "" },
     aboutTitle: { type: String, default: "" },
     aboutBlocks: { type: [AboutBlockSchema], default: [] },
     aboutTagline: { type: String, default: "" },
@@ -109,6 +151,38 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     contactSectionTitle: { type: String, default: "" },
     contactSectionDescription: { type: String, default: "" },
     contactButtonLabel: { type: String, default: "" },
+    navHomeLabel: { type: String, default: "" },
+    navCollectionLabel: { type: String, default: "" },
+    navAboutLabel: { type: String, default: "" },
+    navFaqLabel: { type: String, default: "" },
+    navShippingLabel: { type: String, default: "" },
+    searchPlaceholder: { type: String, default: "" },
+    heroPrimaryButtonLabel: { type: String, default: "" },
+    heroSecondaryButtonLabel: { type: String, default: "" },
+    viewAllLabel: { type: String, default: "" },
+    featuredButtonLabel: { type: String, default: "" },
+    newArrivalsLinkLabel: { type: String, default: "" },
+    whatsappChatLabel: { type: String, default: "" },
+    collectionPageTitle: { type: String, default: "" },
+    collectionPageSubtitle: { type: String, default: "" },
+    emptyResultsTitle: { type: String, default: "" },
+    emptyResultsMessage: { type: String, default: "" },
+    productDescriptionHeading: { type: String, default: "" },
+    productFeaturesHeading: { type: String, default: "" },
+    orderButtonLabel: { type: String, default: "" },
+    cardOrderButtonLabel: { type: String, default: "" },
+    inStockLabel: { type: String, default: "" },
+    outOfStockLabel: { type: String, default: "" },
+    soldOutLabel: { type: String, default: "" },
+    featuredBadgeLabel: { type: String, default: "" },
+    waterResistantLabel: { type: String, default: "" },
+    footerShopHeading: { type: String, default: "" },
+    footerSupportHeading: { type: String, default: "" },
+    footerAllProductsLabel: { type: String, default: "" },
+    faqContactTitle: { type: String, default: "" },
+    faqContactDescription: { type: String, default: "" },
+    shippingPageTitle: { type: String, default: "" },
+    shippingPageSubtitle: { type: String, default: "" },
     aboutCardOneTitle: { type: String, default: "" },
     aboutCardOneDescription: { type: String, default: "" },
     aboutCardTwoTitle: { type: String, default: "" },

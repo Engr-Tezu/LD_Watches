@@ -9,7 +9,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-ld-black flex">
+    <div className="admin-theme min-h-screen bg-ld-black flex">
       {/* Desktop sidebar */}
       <div className="hidden lg:block w-64 shrink-0 fixed inset-y-0 left-0 z-30">
         <AdminSidebar />

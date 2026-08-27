@@ -19,6 +19,8 @@ export interface Product {
   updatedAt: string;
   shortDescription?: string;
   originalPrice?: number;
+  /** Marketing discount in percent (0–95). Drives the sale price shown on site. */
+  discountPercentage?: number;
   specifications?: Record<string, string>;
 }
 
@@ -26,6 +28,7 @@ export interface ProductFormData {
   name: string;
   description: string;
   price: number;
+  discountPercentage: number;
   category: ProductCategory;
   brand: string;
   images: string[];

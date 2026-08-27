@@ -253,7 +253,7 @@ export default function AdminCategoriesManager({
       <ModalPortal>
         <AnimatePresence>
           {modalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 admin-theme">
               <motion.button
                 type="button"
                 initial={{ opacity: 0 }}

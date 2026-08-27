@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { getAdminSession } from "@/lib/auth";
-import { generateUniqueSlug, serializeProduct, buildProductLookupQuery } from "@/lib/product-utils";
+import {
+  generateUniqueSlug,
+  serializeProduct,
+  buildProductLookupQuery,
+  clampDiscount,
+} from "@/lib/product-utils";
 import { categoryExists } from "@/lib/site";
 
 interface RouteParams {
@@ -70,6 +75,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.name !== undefined) updates.name = body.name;
     if (body.description !== undefined) updates.description = body.description;
     if (body.price !== undefined) updates.price = Number(body.price);
+    if (body.discountPercentage !== undefined)
+      updates.discountPercentage = clampDiscount(body.discountPercentage);
     if (body.category !== undefined) updates.category = body.category;
     if (body.brand !== undefined) updates.brand = body.brand;
     if (body.images !== undefined) updates.images = body.images;

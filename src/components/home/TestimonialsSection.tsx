@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FadeIn from "@/components/ui/FadeIn";
 import { Review } from "@/types/site";
@@ -14,29 +14,33 @@ interface TestimonialsSectionProps {
 
 function ReviewCard({ review }: { review: Review }) {
   return (
-    <article className="glass-panel rounded-2xl p-5 sm:p-6 h-full flex flex-col">
-      <div className="flex items-center justify-start gap-1.5 mb-4">
+    <article className="flex h-full flex-col rounded-2xl border border-am-line bg-am-card p-5 sm:p-6">
+      <Quote className="mb-3 h-6 w-6 text-am-gold/40" aria-hidden />
+
+      <div className="mb-4 flex items-center gap-1">
         {Array.from({ length: 5 }).map((_, starIndex) => (
           <Star
             key={starIndex}
-            className={`w-4 h-4 ${
-              starIndex < review.rating ? "text-ld-gold fill-ld-gold" : "text-ld-grey"
+            className={`h-4 w-4 ${
+              starIndex < review.rating
+                ? "fill-am-gold-bright text-am-gold-bright"
+                : "text-am-line-strong"
             }`}
           />
         ))}
       </div>
-      <p className="text-white/90 text-sm sm:text-base leading-relaxed flex-1 mb-5 text-left">
-        “{review.quote}”
+
+      <p className="mb-5 flex-1 text-sm leading-relaxed text-am-ink-soft sm:text-base">
+        {review.quote}
       </p>
-      <div className="flex items-center justify-start gap-3 mt-auto pt-4">
-        <div className="min-w-0 text-left">
-          <p className="text-white font-semibold text-base sm:text-lg truncate">
-            {review.customerName}
-          </p>
-          {review.roleOrLocation && (
-            <p className="text-ld-silver text-xs sm:text-sm truncate">{review.roleOrLocation}</p>
-          )}
-        </div>
+
+      <div className="mt-auto border-t border-am-line pt-4">
+        <p className="truncate text-sm font-semibold text-am-ink sm:text-base">
+          {review.customerName}
+        </p>
+        {review.roleOrLocation && (
+          <p className="truncate text-xs text-am-muted sm:text-sm">{review.roleOrLocation}</p>
+        )}
       </div>
     </article>
   );
@@ -87,17 +91,19 @@ export default function TestimonialsSection({
   const goNext = () => setPage((current) => (current + 1) % totalPages);
 
   return (
-    <section id="reviews" className="py-10 sm:py-12 bg-ld-black border-t border-ld-grey/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="reviews" className="border-t border-am-line bg-am-bg py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="section-heading mb-2">
+          <div className="mb-8 text-center">
+            <h2 className="section-heading">
               {firstWords} <span className="text-gradient-gold">{lastWord}</span>
             </h2>
             {subtitle && (
-              <p className="text-ld-silver text-sm sm:text-base max-w-lg mx-auto">{subtitle}</p>
+              <p className="mx-auto mt-3 max-w-lg text-sm text-am-ink-soft sm:text-base">
+                {subtitle}
+              </p>
             )}
-            <div className="w-14 h-px bg-gradient-to-r from-transparent via-ld-gold/60 to-transparent mx-auto mt-4" />
+            <div className="rule-gold mx-auto mt-4 h-px w-16" aria-hidden />
           </div>
         </FadeIn>
 
@@ -112,11 +118,7 @@ export default function TestimonialsSection({
                   exit={{ opacity: 0, x: -24 }}
                   transition={{ duration: 0.28 }}
                   className={`grid gap-4 sm:gap-6 ${
-                    perPage === 1
-                      ? "grid-cols-1"
-                      : perPage === 2
-                        ? "grid-cols-2"
-                        : "grid-cols-3"
+                    perPage === 1 ? "grid-cols-1" : perPage === 2 ? "grid-cols-2" : "grid-cols-3"
                   }`}
                 >
                   {visible.map((review) => (
@@ -130,10 +132,10 @@ export default function TestimonialsSection({
               <button
                 type="button"
                 onClick={goPrev}
-                className="p-2 rounded-full border border-ld-gold/25 text-ld-gold hover:bg-ld-gold/10 transition-colors"
+                className="rounded-full border border-am-line bg-am-card p-2 text-am-ink transition-colors hover:border-am-gold hover:text-am-gold"
                 aria-label="Previous reviews"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="h-5 w-5" />
               </button>
               <div className="flex items-center gap-1.5">
                 {Array.from({ length: totalPages }).map((_, index) => (
@@ -142,7 +144,9 @@ export default function TestimonialsSection({
                     type="button"
                     onClick={() => setPage(index)}
                     className={`h-2 rounded-full transition-all ${
-                      index === safePage ? "w-6 bg-ld-gold" : "w-2 bg-ld-grey hover:bg-ld-silver"
+                      index === safePage
+                        ? "w-6 bg-am-gold"
+                        : "w-2 bg-am-line-strong hover:bg-am-muted"
                     }`}
                     aria-label={`Go to review page ${index + 1}`}
                   />
@@ -151,15 +155,15 @@ export default function TestimonialsSection({
               <button
                 type="button"
                 onClick={goNext}
-                className="p-2 rounded-full border border-ld-gold/25 text-ld-gold hover:bg-ld-gold/10 transition-colors"
+                className="rounded-full border border-am-line bg-am-card p-2 text-am-ink transition-colors hover:border-am-gold hover:text-am-gold"
                 aria-label="Next reviews"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="h-5 w-5" />
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {reviews.map((review, index) => (
               <FadeIn key={review._id} delay={Math.min(index * 0.08, 0.3)}>
                 <ReviewCard review={review} />
