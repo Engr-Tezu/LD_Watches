@@ -7,6 +7,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Carousel from "@/components/ui/Carousel";
 import { CategoryShowcaseItem } from "@/lib/data";
 
+/** Props for the CategoryShowcase component. */
 interface CategoryShowcaseProps {
   categories: CategoryShowcaseItem[];
   title: string;
