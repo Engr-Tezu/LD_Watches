@@ -35,8 +35,8 @@ export interface SiteSettings {
   collectionSubtitle: string;
   categoriesSectionTitle: string;
   categoriesSectionSubtitle: string;
-  newArrivalsTitle: string;
-  newArrivalsSubtitle: string;
+  allProductsTitle: string;
+  allProductsSubtitle: string;
   aboutTitle: string;
   aboutBlocks: AboutBlock[];
   aboutTagline: string;
@@ -67,7 +67,6 @@ export interface SiteSettings {
   heroSecondaryButtonLabel: string;
   viewAllLabel: string;
   featuredButtonLabel: string;
-  newArrivalsLinkLabel: string;
   whatsappChatLabel: string;
 
   /* ---- Collection page ---- */

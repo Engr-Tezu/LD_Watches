@@ -68,8 +68,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   collectionSubtitle: "Handpicked products chosen for style, quality, and value.",
   categoriesSectionTitle: "Shop by Category",
   categoriesSectionSubtitle: "",
-  newArrivalsTitle: "New Arrivals",
-  newArrivalsSubtitle: "",
+  allProductsTitle: "All Products",
+  allProductsSubtitle: "",
   aboutTitle: "Welcome to LUXE DIAL WATCHES",
   aboutBlocks: DEFAULT_ABOUT_BLOCKS,
   aboutTagline: "Quality and style for every moment.",
@@ -101,7 +101,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroSecondaryButtonLabel: "Learn More",
   viewAllLabel: "View all products",
   featuredButtonLabel: "Browse the Full Collection",
-  newArrivalsLinkLabel: "See what's new",
   whatsappChatLabel: "Chat on WhatsApp",
 
   collectionPageTitle: "Our Collection",
@@ -143,7 +142,6 @@ const SIMPLE_TEXT_KEYS = [
   "heroSecondaryButtonLabel",
   "viewAllLabel",
   "featuredButtonLabel",
-  "newArrivalsLinkLabel",
   "whatsappChatLabel",
   "collectionPageTitle",
   "collectionPageSubtitle",
@@ -351,13 +349,13 @@ export function normalizeSiteSettings(input?: Partial<SiteSettings> | null): Sit
       source.categoriesSectionSubtitle,
       DEFAULT_SITE_SETTINGS.categoriesSectionSubtitle
     ),
-    newArrivalsTitle: pickString(
-      source.newArrivalsTitle,
-      DEFAULT_SITE_SETTINGS.newArrivalsTitle
+    allProductsTitle: pickLabel(
+      source.allProductsTitle,
+      DEFAULT_SITE_SETTINGS.allProductsTitle
     ),
-    newArrivalsSubtitle: pickString(
-      source.newArrivalsSubtitle,
-      DEFAULT_SITE_SETTINGS.newArrivalsSubtitle
+    allProductsSubtitle: pickString(
+      source.allProductsSubtitle,
+      DEFAULT_SITE_SETTINGS.allProductsSubtitle
     ),
     aboutTitle: pickString(source.aboutTitle, DEFAULT_SITE_SETTINGS.aboutTitle),
     aboutBlocks: normalizeAboutBlocks(source.aboutBlocks, source),

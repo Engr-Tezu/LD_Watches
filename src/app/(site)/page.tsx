@@ -2,14 +2,20 @@ import Link from "next/link";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
 import CategoryShowcase from "@/components/home/CategoryShowcase";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
+import AllProductsSection from "@/components/home/AllProductsSection";
 import AboutSection from "@/components/home/AboutSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import HomeFaqSection from "@/components/home/HomeFaqSection";
-import ProductGrid from "@/components/products/ProductGrid";
 import SectionHeading from "@/components/ui/SectionHeading";
 import FadeIn from "@/components/ui/FadeIn";
 import { getProducts, getCategoryShowcase } from "@/lib/data";
-import { getReviews, getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
+import {
+  getCategories,
+  getReviews,
+  getSiteSettings,
+  DEFAULT_SITE_SETTINGS,
+} from "@/lib/site";
 import { getProductLabels } from "@/types/site";
 import { Product } from "@/types/product";
 
@@ -25,22 +31,21 @@ function splitHeading(value: string) {
 export default async function HomePage() {
   const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
 
-  const [featured, latest, categories, reviews] = await Promise.all([
-    getProducts({ featured: true, limit: 8 }).catch(() => [] as Product[]),
-    getProducts({ limit: 8, sort: "newest" }).catch(() => [] as Product[]),
+  const [featured, latest, showcase, categories, reviews] = await Promise.all([
+    getProducts({ featured: true, limit: 12 }).catch(() => [] as Product[]),
+    getProducts({ limit: 12, sort: "newest" }).catch(() => [] as Product[]),
     getCategoryShowcase().catch(() => []),
+    getCategories({ activeOnly: true }).catch(() => []),
     getReviews({ activeOnly: true, featuredOnly: true }).catch(() => []),
   ]);
 
   // With nothing flagged as featured, fall back to the newest items so the
-  // section never renders empty.
+  // slider never renders empty.
   const featuredItems = featured.length ? featured : latest;
-  const featuredIds = new Set(featuredItems.map((item) => item._id));
-  const newArrivals = latest.filter((item) => !featuredIds.has(item._id)).slice(0, 4);
 
   const productLabels = getProductLabels(settings);
   const collection = splitHeading(settings.collectionTitle);
-  const newArrivalsHeading = splitHeading(settings.newArrivalsTitle);
+  const allProducts = splitHeading(settings.allProductsTitle);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -67,10 +72,9 @@ export default async function HomePage() {
       <HeroBanner settings={settings} />
 
       <CategoryShowcase
-        categories={categories}
+        categories={showcase}
         title={settings.categoriesSectionTitle}
         subtitle={settings.categoriesSectionSubtitle}
-        viewAllLabel={settings.viewAllLabel}
       />
 
       {featuredItems.length > 0 && (
@@ -84,13 +88,13 @@ export default async function HomePage() {
                 </>
               }
               subtitle={settings.collectionSubtitle}
-              action={{ href: "/products", label: settings.viewAllLabel }}
             />
 
             <div className="mt-8">
-              <ProductGrid
+              <FeaturedCarousel
                 products={featuredItems}
                 labels={productLabels}
+                ariaLabel={settings.collectionTitle}
                 whatsappNumber={settings.whatsappNumber}
                 siteName={settings.siteName}
                 siteUrl={settings.siteUrl}
@@ -109,32 +113,20 @@ export default async function HomePage() {
         </section>
       )}
 
-      {newArrivals.length > 0 && settings.newArrivalsTitle.trim() && (
-        <section id="new-arrivals" className="bg-am-bg py-12 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeading
-              title={
-                <>
-                  {newArrivalsHeading.head}{" "}
-                  <span className="text-gradient-gold">{newArrivalsHeading.tail}</span>
-                </>
-              }
-              subtitle={settings.newArrivalsSubtitle}
-              action={{ href: "/products?sort=newest", label: settings.newArrivalsLinkLabel }}
-            />
-
-            <div className="mt-8">
-              <ProductGrid
-                products={newArrivals}
-                labels={productLabels}
-                whatsappNumber={settings.whatsappNumber}
-                siteName={settings.siteName}
-                siteUrl={settings.siteUrl}
-              />
-            </div>
-          </div>
-        </section>
-      )}
+      <AllProductsSection
+        title={
+          <>
+            {allProducts.head}{" "}
+            <span className="text-gradient-gold">{allProducts.tail}</span>
+          </>
+        }
+        subtitle={settings.allProductsSubtitle}
+        categories={categories.map((category) => category.name)}
+        labels={productLabels}
+        whatsappNumber={settings.whatsappNumber}
+        siteName={settings.siteName}
+        siteUrl={settings.siteUrl}
+      />
 
       <AboutSection settings={settings} />
 

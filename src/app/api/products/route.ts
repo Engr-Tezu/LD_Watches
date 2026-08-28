@@ -4,47 +4,52 @@ import Product from "@/models/Product";
 import { getAdminSession } from "@/lib/auth";
 import { generateUniqueSlug, serializeProduct, clampDiscount } from "@/lib/product-utils";
 import { categoryExists } from "@/lib/site";
+import { getProducts, countProducts, normalizeSort } from "@/lib/data";
 
+const MAX_PAGE_SIZE = 48;
+
+/**
+ * Paginated product feed. Backs the homepage's infinite-scroll section, so it
+ * returns `total` / `hasMore` alongside the page of items.
+ */
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const featured = searchParams.get("featured");
-    const search = searchParams.get("search");
-    const limit = parseInt(searchParams.get("limit") || "0", 10);
+    const search = searchParams.get("search") || searchParams.get("q");
+    const sort = normalizeSort(searchParams.get("sort"));
+    const inStockOnly = searchParams.get("stock") === "in";
 
-    const filter: Record<string, unknown> = {};
+    const rawLimit = Number.parseInt(searchParams.get("limit") || "12", 10);
+    const limit = Math.min(
+      MAX_PAGE_SIZE,
+      Math.max(1, Number.isFinite(rawLimit) ? rawLimit : 12)
+    );
 
-    if (category && category !== "All") {
-      filter.category = category;
-    }
+    const rawPage = Number.parseInt(searchParams.get("page") || "1", 10);
+    const page = Math.max(1, Number.isFinite(rawPage) ? rawPage : 1);
 
-    if (featured === "true") {
-      filter.featured = true;
-    }
+    const filters = {
+      category: category && category !== "All" ? category : undefined,
+      featured: featured === "true" ? true : undefined,
+      search: search || undefined,
+      inStockOnly,
+    };
 
-    if (search) {
-      filter.$text = { $search: search };
-    }
+    const [total, items] = await Promise.all([
+      countProducts(filters),
+      getProducts({ ...filters, sort, limit, skip: (page - 1) * limit }),
+    ]);
 
-    let query = Product.find(filter).sort({ createdAt: -1 });
-    if (limit > 0) query = query.limit(limit);
-
-    const items = await query.lean();
-    const serialized = items.map((item) => ({
-      ...item,
-      _id: String(item._id),
-      mainImageIndex: item.mainImageIndex ?? 0,
-      waterResistant: item.waterResistant ?? false,
-      features: Array.isArray(item.features) ? item.features : [],
-      tags: Array.isArray(item.tags) ? item.tags : [],
-      createdAt: item.createdAt?.toISOString?.() ?? item.createdAt,
-      updatedAt: item.updatedAt?.toISOString?.() ?? item.updatedAt,
-    }));
-
-    return NextResponse.json({ success: true, data: serialized });
+    return NextResponse.json({
+      success: true,
+      data: items,
+      page,
+      limit,
+      total,
+      hasMore: page * limit < total,
+    });
   } catch (error) {
     console.error("GET /api/products error:", error);
     return NextResponse.json({ success: false, error: "Failed to fetch items" }, { status: 500 });

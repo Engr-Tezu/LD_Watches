@@ -1,40 +1,42 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import FadeIn from "@/components/ui/FadeIn";
 import SectionHeading from "@/components/ui/SectionHeading";
+import Carousel from "@/components/ui/Carousel";
 import { CategoryShowcaseItem } from "@/lib/data";
 
 interface CategoryShowcaseProps {
   categories: CategoryShowcaseItem[];
   title: string;
   subtitle?: string;
-  viewAllLabel: string;
 }
 
 export default function CategoryShowcase({
   categories,
   title,
   subtitle,
-  viewAllLabel,
 }: CategoryShowcaseProps) {
   if (!categories.length) return null;
 
   return (
     <section id="categories" className="bg-am-bg py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          title={title}
-          subtitle={subtitle}
-          action={{ href: "/products", label: viewAllLabel }}
-        />
+        <SectionHeading title={title} subtitle={subtitle} />
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
-          {categories.map((category, index) => (
-            <FadeIn key={category.name} delay={Math.min(index * 0.06, 0.3)}>
+        <div className="mt-8">
+          <Carousel
+            ariaLabel={title}
+            autoPlay
+            autoPlayInterval={3000}
+            slideClassName="w-[45%] sm:w-[31%] md:w-[23.5%] lg:w-[19%]"
+          >
+            {categories.map((category) => (
               <Link
+                key={category.name}
                 href={`/products?category=${encodeURIComponent(category.name)}`}
-                className="group relative block overflow-hidden rounded-2xl border border-am-line bg-am-card transition-shadow duration-300 hover:shadow-[0_18px_40px_-24px_rgba(23,20,15,0.45)]"
+                className="group block overflow-hidden rounded-2xl border border-am-line bg-am-card transition-shadow duration-300 hover:shadow-[0_18px_40px_-24px_rgba(23,20,15,0.45)]"
               >
                 <div className="relative aspect-square overflow-hidden bg-am-bg-alt">
                   {category.image ? (
@@ -42,7 +44,7 @@ export default function CategoryShowcase({
                       src={category.image}
                       alt={category.name}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 24vw, 19vw"
                       className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     />
                   ) : (
@@ -71,8 +73,8 @@ export default function CategoryShowcase({
                   </div>
                 </div>
               </Link>
-            </FadeIn>
-          ))}
+            ))}
+          </Carousel>
         </div>
       </div>
     </section>

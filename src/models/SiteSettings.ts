@@ -33,8 +33,8 @@ export interface ISiteSettings extends Document {
   collectionSubtitle: string;
   categoriesSectionTitle: string;
   categoriesSectionSubtitle: string;
-  newArrivalsTitle: string;
-  newArrivalsSubtitle: string;
+  allProductsTitle: string;
+  allProductsSubtitle: string;
   aboutTitle: string;
   aboutBlocks: IAboutBlock[];
   aboutTagline: string;
@@ -61,7 +61,6 @@ export interface ISiteSettings extends Document {
   heroSecondaryButtonLabel: string;
   viewAllLabel: string;
   featuredButtonLabel: string;
-  newArrivalsLinkLabel: string;
   whatsappChatLabel: string;
   collectionPageTitle: string;
   collectionPageSubtitle: string;
@@ -133,8 +132,8 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     collectionSubtitle: { type: String, default: "" },
     categoriesSectionTitle: { type: String, default: "" },
     categoriesSectionSubtitle: { type: String, default: "" },
-    newArrivalsTitle: { type: String, default: "" },
-    newArrivalsSubtitle: { type: String, default: "" },
+    allProductsTitle: { type: String, default: "" },
+    allProductsSubtitle: { type: String, default: "" },
     aboutTitle: { type: String, default: "" },
     aboutBlocks: { type: [AboutBlockSchema], default: [] },
     aboutTagline: { type: String, default: "" },
@@ -161,7 +160,6 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     heroSecondaryButtonLabel: { type: String, default: "" },
     viewAllLabel: { type: String, default: "" },
     featuredButtonLabel: { type: String, default: "" },
-    newArrivalsLinkLabel: { type: String, default: "" },
     whatsappChatLabel: { type: String, default: "" },
     collectionPageTitle: { type: String, default: "" },
     collectionPageSubtitle: { type: String, default: "" },
