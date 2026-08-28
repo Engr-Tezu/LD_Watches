@@ -5,8 +5,16 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import { getProductBySlug, getProducts } from "@/lib/data";
 import { getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
 import { Product } from "@/types/product";
-import { getProductPricing } from "@/lib/utils";
+import { getProductPricing, getOrderedImages } from "@/lib/utils";
 import { getProductLabels } from "@/types/site";
+import {
+  absoluteUrl,
+  buildBreadcrumbJsonLd,
+  buildPageMetadata,
+  buildProductDescription,
+  buildProductTitle,
+  getSiteUrl,
+} from "@/lib/seo";
 import type { Metadata } from "next";
 
 interface ProductDetailPageProps {
@@ -17,26 +25,25 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
   const { slug } = await params;
   const item = await getProductBySlug(slug).catch(() => null);
-  if (!item) return { title: `Item Not Found | ${settings.siteName}` };
-  const description = item.description.slice(0, 160);
-  const image = item.images?.[item.mainImageIndex ?? 0] || item.images?.[0] || settings.seoOgImage;
-  return {
-    title: item.name,
-    description,
-    alternates: { canonical: `/products/${item.slug}` },
-    openGraph: {
-      title: `${item.name} | ${settings.siteName}`,
-      description,
-      type: "website",
-      images: image ? [{ url: image, alt: item.name }] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: item.name,
-      description,
-      images: image ? [image] : undefined,
-    },
-  };
+
+  if (!item) {
+    return {
+      title: "Product not found",
+      description: "This product is no longer available.",
+      robots: { index: false, follow: true },
+    };
+  }
+
+  // Main image first so it is the one social platforms preview.
+  const ordered = getOrderedImages(item);
+
+  return buildPageMetadata({
+    title: buildProductTitle(item),
+    description: buildProductDescription(item, settings),
+    path: `/products/${item.slug}`,
+    settings,
+    images: ordered.slice(0, 4).map((url) => ({ url, alt: item.name })),
+  });
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
@@ -53,32 +60,69 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     relatedItems = [];
   }
 
-  const siteUrl = (settings.siteUrl || "").replace(/\/$/, "");
+  const siteUrl = getSiteUrl(settings);
   const pricing = getProductPricing(item);
-  const jsonLd = {
+  const productUrl = absoluteUrl(`/products/${item.slug}`, siteUrl);
+
+  // Prices are quoted per-order over WhatsApp; a year is a safe validity hint.
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: item.name,
-    description: item.description,
-    image: item.images?.length ? item.images : undefined,
+    description: buildProductDescription(item, settings),
+    image: getOrderedImages(item).map((url) => absoluteUrl(url, siteUrl)),
+    sku: item._id,
     brand: { "@type": "Brand", name: item.brand },
     category: item.category,
+    ...(item.features?.length
+      ? {
+          additionalProperty: item.features.map((feature) => ({
+            "@type": "PropertyValue",
+            name: "Feature",
+            value: feature,
+          })),
+        }
+      : {}),
     offers: {
       "@type": "Offer",
       price: pricing.price,
       priceCurrency: "PKR",
+      priceValidUntil,
+      itemCondition: "https://schema.org/NewCondition",
       availability: item.inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
-      url: siteUrl ? `${siteUrl}/products/${item.slug}` : undefined,
+      url: productUrl,
+      seller: { "@type": "Organization", name: settings.siteName },
     },
   };
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: settings.navHomeLabel, path: "/" },
+      { name: settings.navCollectionLabel, path: "/products" },
+      {
+        name: item.category,
+        path: `/products?category=${encodeURIComponent(item.category)}`,
+      },
+      { name: item.name, path: `/products/${item.slug}` },
+    ],
+    siteUrl
+  );
 
   return (
     <div className="pb-28 pt-8 sm:pt-10 lg:pb-20">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

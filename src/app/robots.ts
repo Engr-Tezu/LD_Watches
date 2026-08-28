@@ -10,9 +10,18 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api"],
+        // Admin and API are never useful in results. Sort/stock refinements
+        // are duplicates of the canonical listing, so keep them out of the
+        // crawl budget; search URLs are additionally noindex'd on the page.
+        disallow: [
+          "/admin",
+          "/api",
+          "/products?*sort=",
+          "/products?*stock=",
+        ],
       },
     ],
     sitemap: `${base}/sitemap.xml`,
+    host: base,
   };
 }

@@ -3,14 +3,20 @@ import Link from "next/link";
 import { Truck, RotateCcw } from "lucide-react";
 import FadeIn from "@/components/ui/FadeIn";
 import { getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
+import { buildPageMetadata, truncateAtWord } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
-  return {
-    title: "Shipping & Returns",
-    description: `Learn about ${settings.siteName} shipping and return policies.`,
-    alternates: { canonical: "/shipping-returns" },
-  };
+  return buildPageMetadata({
+    title: settings.shippingPageTitle,
+    // Uses the actual policy text, so the snippet answers the visitor's
+    // question (delivery times, return window) directly in the results.
+    description: truncateAtWord(
+      settings.shippingPolicyContent || settings.shippingPageSubtitle
+    ),
+    path: "/shipping-returns",
+    settings,
+  });
 }
 
 function PolicyBlock({

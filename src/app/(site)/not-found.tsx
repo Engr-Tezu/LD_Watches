@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Home, Search } from "lucide-react";
 
+// Next.js ignores `metadata` exports in not-found.tsx and emits its own
+// `noindex` for this route, so there is nothing to declare here.
 export default function NotFound() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4 py-20">

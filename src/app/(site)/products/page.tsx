@@ -9,6 +9,13 @@ import FadeIn from "@/components/ui/FadeIn";
 import { getProducts, countProducts, normalizeSort } from "@/lib/data";
 import { getCategories, getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
 import { getProductLabels } from "@/types/site";
+import {
+  absoluteUrl,
+  buildBreadcrumbJsonLd,
+  buildPageMetadata,
+  getSiteUrl,
+  truncateAtWord,
+} from "@/lib/seo";
 import { Product } from "@/types/product";
 
 const PAGE_SIZE = 12;
@@ -23,12 +30,53 @@ interface ProductsPageProps {
   }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
   const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
-  return {
-    title: settings.collectionTitle || "Collection",
-    description: settings.collectionSubtitle || settings.seoDescription,
-  };
+  const params = await searchParams;
+
+  const category = params.category?.trim() || "";
+  const query = params.q?.trim() || "";
+  const rawPage = Number.parseInt(params.page || "1", 10);
+  const page = Math.max(1, Number.isFinite(rawPage) ? rawPage : 1);
+  const pageSuffix = page > 1 ? ` – Page ${page}` : "";
+
+  // Free-text search produces near-infinite URL permutations with thin,
+  // duplicated content: crawlable so products are still discovered, but not
+  // indexed. Category pages are real facets and stay indexable.
+  if (query) {
+    return buildPageMetadata({
+      title: `Search results for “${query}”${pageSuffix}`,
+      description: `Products matching “${query}” at ${settings.siteName}.`,
+      path: "/products",
+      settings,
+      noIndex: true,
+    });
+  }
+
+  if (category) {
+    return buildPageMetadata({
+      title: `${category}${pageSuffix}`,
+      description: truncateAtWord(
+        `Browse our ${category} collection at ${settings.siteName}. ${settings.collectionPageSubtitle}`
+      ),
+      // Canonical keeps the facet but drops sort/stock refinements.
+      path: `/products?category=${encodeURIComponent(category)}${
+        page > 1 ? `&page=${page}` : ""
+      }`,
+      settings,
+    });
+  }
+
+  return buildPageMetadata({
+    title: `${settings.collectionPageTitle}${pageSuffix}`,
+    description: truncateAtWord(
+      settings.collectionPageSubtitle || settings.seoDescription
+    ),
+    path: page > 1 ? `/products?page=${page}` : "/products",
+    settings,
+  });
 }
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
@@ -92,17 +140,66 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     }).filter(([, value]) => Boolean(value)) as [string, string][]
   ).toString();
 
+  const siteUrl = getSiteUrl(settings);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    [
+      { name: settings.navHomeLabel, path: "/" },
+      { name: settings.collectionPageTitle, path: "/products" },
+      ...(category !== "All"
+        ? [
+            {
+              name: category,
+              path: `/products?category=${encodeURIComponent(category)}`,
+            },
+          ]
+        : []),
+    ],
+    siteUrl
+  );
+
+  // Tells search engines what this listing contains and in what order.
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: category !== "All" ? category : settings.collectionPageTitle,
+    numberOfItems: total,
+    itemListElement: items.map((product, index) => ({
+      "@type": "ListItem",
+      position: (currentPage - 1) * PAGE_SIZE + index + 1,
+      url: absoluteUrl(`/products/${product.slug}`, siteUrl),
+      name: product.name,
+    })),
+  };
+
   return (
     <div className="pb-14 sm:pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {items.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        />
+      )}
+
       <div className="border-b border-am-line bg-am-bg-alt">
         <div className="mx-auto max-w-7xl px-4 py-8 text-center sm:px-6 sm:py-11 lg:px-8">
           <FadeIn>
+            {/* The H1 mirrors the <title> so the page has one clear subject. */}
             <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-am-ink sm:text-3xl md:text-4xl">
-              {settings.collectionPageTitle}
+              {query
+                ? `Search results for “${query}”`
+                : category !== "All"
+                  ? category
+                  : settings.collectionPageTitle}
             </h1>
-            {settings.collectionPageSubtitle && (
+            {!query && settings.collectionPageSubtitle && (
               <p className="mx-auto mt-3 max-w-xl text-sm text-am-ink-soft sm:text-base">
-                {settings.collectionPageSubtitle}
+                {category !== "All"
+                  ? `Browse our ${category} collection.`
+                  : settings.collectionPageSubtitle}
               </p>
             )}
             <div className="rule-gold mx-auto mt-4 h-px w-16" aria-hidden />

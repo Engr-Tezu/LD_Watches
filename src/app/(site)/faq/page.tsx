@@ -3,14 +3,31 @@ import Link from "next/link";
 import { MessageCircle, Plus } from "lucide-react";
 import FadeIn from "@/components/ui/FadeIn";
 import { getSiteSettings, DEFAULT_SITE_SETTINGS } from "@/lib/site";
+import { buildPageMetadata, truncateAtWord } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
-  return {
+  const faqs = Array.isArray(settings.faqs) ? settings.faqs : [];
+
+  // Lead with the real questions so the snippet previews actual content.
+  const questions = faqs
+    .slice(0, 3)
+    .map((faq) => faq.question)
+    .join(" ");
+  // Drop the intro's trailing punctuation so it reads "…support: How long…".
+  const intro = (settings.faqPageSubtitle || "Answers to common questions").replace(
+    /[.:;,\s]+$/,
+    ""
+  );
+
+  return buildPageMetadata({
     title: settings.faqPageTitle,
-    description: settings.faqPageSubtitle || settings.seoDescription,
-    alternates: { canonical: "/faq" },
-  };
+    description: truncateAtWord(
+      questions ? `${intro}: ${questions}` : intro || settings.seoDescription
+    ),
+    path: "/faq",
+    settings,
+  });
 }
 
 export default async function FaqPage() {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import HeroBanner from "@/components/home/HeroBanner";
@@ -17,7 +18,18 @@ import {
   DEFAULT_SITE_SETTINGS,
 } from "@/lib/site";
 import { getProductLabels } from "@/types/site";
+import { absoluteUrl, buildPageMetadata, getSiteUrl, truncateAtWord } from "@/lib/seo";
 import { Product } from "@/types/product";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings().catch(() => DEFAULT_SITE_SETTINGS);
+  return buildPageMetadata({
+    title: settings.seoTitle?.trim() || settings.siteName,
+    description: truncateAtWord(settings.seoDescription),
+    path: "/",
+    settings,
+  });
+}
 
 /** Splits a heading so the last word can carry the gold gradient. */
 function splitHeading(value: string) {
@@ -47,13 +59,23 @@ export default async function HomePage() {
   const collection = splitHeading(settings.collectionTitle);
   const allProducts = splitHeading(settings.allProductsTitle);
 
-  const jsonLd = {
+  const siteUrl = getSiteUrl(settings);
+
+  const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: settings.siteName,
-    url: settings.siteUrl,
-    logo: settings.seoOgImage || settings.logoUrl,
+    url: siteUrl,
+    logo: absoluteUrl(settings.seoOgImage || settings.logoUrl, siteUrl),
     description: settings.seoDescription,
+    ...(settings.contactAddress
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: settings.contactAddress,
+          },
+        }
+      : {}),
     contactPoint: {
       "@type": "ContactPoint",
       telephone: settings.contactPhone,
@@ -62,11 +84,31 @@ export default async function HomePage() {
     },
   };
 
+  // Enables the sitelinks search box and names the site for search engines.
+  const webSiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: settings.siteName,
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${siteUrl}/products?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteJsonLd) }}
       />
 
       <HeroBanner settings={settings} />

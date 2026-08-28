@@ -54,13 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: ogImage ? [ogImage] : undefined,
     },
-    alternates: {
-      canonical: siteUrl,
-    },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    // Deliberately no `alternates.canonical` and no `robots` here: metadata is
+    // inherited, so a canonical on the root layout would point every page at
+    // the homepage, and a blanket `index, follow` would fight the automatic
+    // `noindex` Next.js emits on the 404 page. Each page sets both itself via
+    // buildPageMetadata().
   };
 }
 
